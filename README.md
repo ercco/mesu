@@ -1,2 +1,2 @@
-# mesu
+# MESU
 Multilayer EnumerateSubgraphs
