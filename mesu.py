@@ -15,7 +15,7 @@ def mesu(M,s):
             if all(t[addition] > t[nl] for addition in _additions(S,neighbor,t)):
                 VM_extension.add(neighbor)
         _multilayer_extend_subgraph(M,s,S,VM_extension,t,nl)
-        
+
 def _multilayer_extend_subgraph(M,s,S,VM_extension,t,nl):
     if all(len(S[ii])==s[ii] for ii in range(len(s))):
         if pn.nx.is_connected(pn.transforms.get_underlying_graph(pn.subnet(M,*S))):
@@ -39,7 +39,7 @@ def _multilayer_extend_subgraph(M,s,S,VM_extension,t,nl):
                         VM_extension_prime.add(neighbor)
         _multilayer_extend_subgraph(M,s,new_S,VM_extension_prime,t,nl)
     return
-            
+
 def _additions(base_S,added_nl,t):
     # return generator with all nodelayers added as result of adding added_nl to base_S
     total_S = [base_S[ii].union({added_nl[ii]}) for ii in range(len(added_nl))]
