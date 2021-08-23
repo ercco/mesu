@@ -4,7 +4,7 @@
 import pymnet as pn
 import itertools
 
-def mesu(M,s):
+def mesu(M,s,output_function=print):
     t = dict()
     for ii,nl in enumerate(M.iter_node_layers()):
         t[nl] = ii
@@ -14,12 +14,12 @@ def mesu(M,s):
         for neighbor in M[nl]:
             if all(t[addition] > t[nl] for addition in _additions(S,neighbor,t)):
                 VM_extension.add(neighbor)
-        _multilayer_extend_subgraph(M,s,S,VM_extension,t,nl)
+        _multilayer_extend_subgraph(M,s,S,VM_extension,t,nl,output_function)
 
-def _multilayer_extend_subgraph(M,s,S,VM_extension,t,nl):
+def _multilayer_extend_subgraph(M,s,S,VM_extension,t,nl,output_function):
     if all(len(S[ii])==s[ii] for ii in range(len(s))):
         if pn.nx.is_connected(pn.transforms.get_underlying_graph(pn.subnet(M,*S))):
-            print(S)
+            output_function(S)
             return
         else:
             return
@@ -37,7 +37,7 @@ def _multilayer_extend_subgraph(M,s,S,VM_extension,t,nl):
                 if neighbor not in new_nodelayers:
                     if all(t[neighbor_addition] > t[nl] and neighbor_addition not in N for neighbor_addition in _additions(new_S,neighbor,t)):
                         VM_extension_prime.add(neighbor)
-        _multilayer_extend_subgraph(M,s,new_S,VM_extension_prime,t,nl)
+        _multilayer_extend_subgraph(M,s,new_S,VM_extension_prime,t,nl,output_function)
     return
 
 def _additions(base_S,added_nl,t):
