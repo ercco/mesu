@@ -3,6 +3,7 @@
 
 import pymnet as pn
 import itertools
+import copy
 
 def mesu(M,s,output_function=print):
     t = dict()
@@ -23,8 +24,6 @@ def _multilayer_extend_subgraph(M,s,S,extension,t,nl,output_function):
             return
         else:
             return
-#    elif not all(len(S[ii])<=s[ii] for ii in range(len(s))):
-#        return
     N = [set() for _ in nl]
     for neighbor in _get_S_neighbors(M,S,t):
         if t[neighbor] > t[nl]:
@@ -35,22 +34,23 @@ def _multilayer_extend_subgraph(M,s,S,extension,t,nl,output_function):
         chosen_index = possible_indices[0]
         l = extension[chosen_index].pop()
         possible_indices = _candidate_extension_indices(extension,S,s)
-        extension_prime = list(extension)
-        new_S = list(S)
-        new_S[chosen_index].add(l)
-        # TODO:
-        new_nodelayers = {new_nl for new_nl in itertools.product(*new_S) if new_nl in t}
-        for addition in _additions(S,sigma,t):
+        extension_prime = copy.deepcopy(extension)
+        S_prime = copy.deepcopy(S)
+        S_prime[chosen_index].add(l)
+        new_nodelayers = {new_nl for new_nl in itertools.product(*S_prime) if new_nl in t}
+        dummy_nl = tuple(l if ii==chosen_index else None for ii in range(len(nl)))
+        for addition in _additions(S,dummy_nl,t):
             for neighbor in M[addition]:
                 if neighbor not in new_nodelayers:
-                    if all(t[neighbor_addition] > t[nl] and neighbor_addition not in N for neighbor_addition in _additions(new_S,neighbor,t)):
-                        VM_extension_prime.add(neighbor)
-        _multilayer_extend_subgraph(M,s,new_S,VM_extension_prime,t,nl,output_function)
+                    if all(t[neighbor_addition] > t[nl] for neighbor_addition in _additions(S_prime,neighbor,t)):
+                        _add_to_extension(extension_prime,neighbor,S_prime,N)
+        _multilayer_extend_subgraph(M,s,S_prime,extension_prime,t,nl,output_function)
     return
 
 def _additions(base_S,added_nl,t):
     # return generator with all nodelayers added as result of adding added_nl to base_S
-    total_S = [base_S[ii].union({added_nl[ii]}) for ii in range(len(added_nl))]
+    # to add only a portion of aspects in added_nl, set the rest to None
+    total_S = [base_S[ii].union({added_nl[ii]}) if added_nl[ii] is not None else base_S[ii] for ii in range(len(added_nl))]
     init_subgraph_nls = {nl_init for nl_init in itertools.product(*base_S) if nl_init in t}
     return (nl for nl in itertools.product(*total_S) if (nl in t and not nl in init_subgraph_nls))
 
