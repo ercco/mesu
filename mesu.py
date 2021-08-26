@@ -36,8 +36,9 @@ def _multilayer_extend_subgraph(M,s,S,extension,t,nl,output_function):
         l = extension[chosen_index].pop()
         possible_indices = _candidate_extension_indices(extension,S,s)
         extension_prime = list(extension)
-        # TODO: how to add to just one index in S and keep the rest, without altering original?
-        new_S = [S[ii].union({sigma[ii]}) for ii in range(len(sigma))]
+        new_S = list(S)
+        new_S[chosen_index].add(l)
+        # TODO:
         new_nodelayers = {new_nl for new_nl in itertools.product(*new_S) if new_nl in t}
         for addition in _additions(S,sigma,t):
             for neighbor in M[addition]:
@@ -57,7 +58,7 @@ def _add_to_extension(extension,delta,S,N=None):
     if N is None:
         N = [set() for _ in delta]
     for ii,elem_layer in enumerate(delta):
-        if elem_layer not in S[ii] and elem_layer not in S[ii]:
+        if elem_layer not in S[ii] and elem_layer not in N[ii]:
             extension[ii].add(elem_layer)
 
 def _get_S_neighbors(M,S,t):
