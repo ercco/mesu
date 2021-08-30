@@ -26,7 +26,7 @@ def _multilayer_extend_subgraph(M,s,S,extension,t,nl,output_function):
             return
     N = [set() for _ in nl]
     for neighbor in _get_S_neighbors(M,S,t):
-        if t[neighbor] > t[nl]:
+        if all(t[addition] > t[nl] for addition in _additions(S,neighbor,t)):
             for ii,l in enumerate(neighbor):
                 N[ii].add(l)
     possible_indices = _candidate_extension_indices(extension,S,s)
