@@ -105,11 +105,12 @@ def plot_running_times(running_times,savename):
     plt.ylabel('Running time')
     plt.xlabel('Subgraph size')
     plt.tight_layout(pad=0.1)
-    plt.savefig('running_times.pdf')
+    plt.savefig(savename)
+    plt.close('all')
 
 def run_benchmark():
     subnet_sizes = ((2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4))
-    er_params = ((10,5,5),0.05)
+    er_params = ((10,5,5),0.01)
     persistent_file_name = str(subnet_sizes).replace(' ','')+str(er_params).replace(' ','')
     result_times = compare_running_times(subnet_sizes=subnet_sizes,er_params=er_params,persistent_file=persistent_file_name+'.pickle')
     plot_running_times(result_times,persistent_file_name+'.pdf')
