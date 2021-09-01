@@ -22,7 +22,7 @@ def augmented_esu(M,s,output_function=print):
 
 def _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function,depth=1):
     if all(len(S[ii])==s[ii] for ii in range(len(s))):
-        if pn.nx.is_connected(pn.transforms.get_underlying_graph(pn.subnet(M,*S))):
+        if _valid_esu(M,S,V_subgraph,extension,t,nl):
             output_function(S)
         return
     elif any(len(S[ii])>s[ii] for ii in range(len(s))):
@@ -127,3 +127,51 @@ def _valid(M,S):
             return False
     else:
         return False
+
+def _valid_esu(M,S,V_subgraph,extension,t,nl):
+    subnet = pn.subnet(M,*S)
+    if pn.nx.is_connected(pn.transforms.get_underlying_graph(subnet)) and all(t[sub_nl] >= t[nl] for sub_nl in subnet.iter_node_layers()):
+        for spanning_path_nl in V_subgraph:
+            if any(neighbor not in V_subgraph and neighbor not in extension for neighbor in subnet[spanning_path_nl]):
+                return False
+        return True
+    else:
+        return False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
