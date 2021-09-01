@@ -5,6 +5,47 @@ import pymnet as pn
 import itertools
 import copy
 
+##### Nodelayer-based augmented ESU #####
+
+def augmented_esu(M,s,output_function=print):
+    t = dict()
+    for ii,nl in enumerate(M.iter_node_layers()):
+        t[nl] = ii
+    for nl in M.iter_node_layers():
+        S = [{elem_layer} for elem_layer in nl]
+        V_subgraph = {nl}
+        extension = set()
+        for neighbor in M[nl]:
+            if t[neighbor] > t[nl]:
+                extension.add(neighbor)
+        _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function)
+
+def _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function,depth=1):
+    if all(len(S[ii])==s[ii] for ii in range(len(s))):
+        if pn.nx.is_connected(pn.transforms.get_underlying_graph(pn.subnet(M,*S))):
+            output_function(S)
+        return
+    elif any(len(S[ii])>s[ii] for ii in range(len(s))):
+        return
+    max_nls = 1
+    for ii in s:
+        max_nls = max_nls*ii
+    if len(V_subgraph) > max_nls:
+        return
+    N = set()
+    for neighbor in _get_S_neighbors(M,S,t):
+        N.add(neighbor)
+    while extension:
+        new_nl = extension.pop()
+        S_prime = [S[ii].union({new_nl[ii]}) for ii in range(len(nl))]
+        new_exclusive_neighbors = set()
+        for neighbor in M[new_nl]:
+            if neighbor not in N and neighbor not in V_subgraph and t[neighbor] > t[nl]:
+                new_exclusive_neighbors.add(neighbor)
+        _augmented_esu_extend(M,s,S_prime,V_subgraph.union({new_nl}),extension.union(new_exclusive_neighbors),t,nl,output_function,depth=depth+1)
+
+##### Aspect-based MESU #####
+
 def mesu(M,s,output_function=print):
     t = dict()
     for ii,nl in enumerate(M.iter_node_layers()):
@@ -46,6 +87,8 @@ def _multilayer_extend_subgraph(M,s,S,extension,t,nl,output_function):
                         _add_to_extension(extension_prime,neighbor,S_prime,N)
         _multilayer_extend_subgraph(M,s,S_prime,extension_prime,t,nl,output_function)
     return
+
+##### Helpers #####
 
 def _additions(base_S,added_nl,t):
     # return generator with all nodelayers added as result of adding added_nl to base_S

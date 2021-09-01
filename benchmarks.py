@@ -24,43 +24,6 @@ class persistent(object):
         else:
             return self.function(*args,**kwargs)
 
-def esu_for_multilayer(M,s,output_function=print):
-    t = dict()
-    for ii,nl in enumerate(M.iter_node_layers()):
-        t[nl] = ii
-    for nl in M.iter_node_layers():
-        S = [{elem_layer} for elem_layer in nl]
-        V_subgraph = {nl}
-        extension = set()
-        for neighbor in M[nl]:
-            if t[neighbor] > t[nl]:
-                extension.add(neighbor)
-        _esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function)
-
-def _esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function,depth=1):
-    if all(len(S[ii])==s[ii] for ii in range(len(s))):
-        if mesu.pn.nx.is_connected(mesu.pn.transforms.get_underlying_graph(mesu.pn.subnet(M,*S))):
-            output_function(S)
-        return
-    elif any(len(S[ii])>s[ii] for ii in range(len(s))):
-        return
-    max_nls = 1
-    for ii in s:
-        max_nls = max_nls*ii
-    if len(V_subgraph) > max_nls:
-        return
-    N = set()
-    for neighbor in mesu._get_S_neighbors(M,S,t):
-        N.add(neighbor)
-    while extension:
-        new_nl = extension.pop()
-        S_prime = [S[ii].union({new_nl[ii]}) for ii in range(len(nl))]
-        new_exclusive_neighbors = set()
-        for neighbor in M[new_nl]:
-            if neighbor not in N and neighbor not in V_subgraph and t[neighbor] > t[nl]:
-                new_exclusive_neighbors.add(neighbor)
-        _esu_extend(M,s,S_prime,V_subgraph.union({new_nl}),extension.union(new_exclusive_neighbors),t,nl,output_function,depth=depth+1)
-
 def er_multilayer_any_aspects(l=[10,4,4],p=0.05):
     M = mesu.pn.MultilayerNetwork(aspects=len(l)-1,directed=False,fullyInterconnected=True)
     for ii,layers_in_aspect in enumerate(l):
@@ -84,7 +47,7 @@ def compare_running_times(subnet_sizes = [(2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4
             mesu.mesu(M,subnet_size,lambda S:resultset_mesu.add(tuple(frozenset(e) for e in S)))
             mesu_end = time.time()
             esu_start = time.time()
-            esu_for_multilayer(M,subnet_size,lambda S:resultset_esu.add(tuple(frozenset(e) for e in S)))
+            mesu.augmented_esu(M,subnet_size,lambda S:resultset_esu.add(tuple(frozenset(e) for e in S)))
             esu_end = time.time()
             assert resultset_mesu == resultset_esu
             result_times[subnet_size] = (mesu_end-mesu_start,esu_end-esu_start)
