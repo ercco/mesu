@@ -33,7 +33,7 @@ def _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function,depth=
     if len(V_subgraph) > max_nls:
         return
     N = set()
-    for neighbor in _get_S_neighbors(M,S,t):
+    for neighbor in _get_V_subgraph_neighbors(M,V_subgraph):
         N.add(neighbor)
     while extension:
         new_nl = extension.pop()
@@ -127,6 +127,12 @@ def _valid(M,S):
             return False
     else:
         return False
+
+def _get_V_subgraph_neighbors(M,V_subgraph):
+    for nl in V_subgraph:
+        for neighbor in M[nl]:
+            if neighbor not in V_subgraph:
+                yield neighbor
 
 def _valid_esu(M,S,V_subgraph,extension,t,nl):
     subnet = pn.subnet(M,*S)
