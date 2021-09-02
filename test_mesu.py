@@ -112,95 +112,95 @@ class TestSampling(unittest.TestCase):
                 net8.add_node(2,layer='Y')
                 resultlist = []
                 func(net1,[1,1],lambda S: resultlist.append(tuple(list(x) for x in S)))
-                self.assertEqual(resultlist,[])
+                self.assertEqual(resultlist,[],'\n net1')
                 resultlist = []
                 func(net2,[1,1],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 resultlist.sort()
-                self.assertEqual(resultlist,[([1],['X']),([1],['Y']),([2],['X'])])
+                self.assertEqual(resultlist,[([1],['X']),([1],['Y']),([2],['X'])],'\n net2 [1,1]')
                 resultlist = []
                 func(net2,[2,1],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 for result in resultlist:
                     result[0].sort()
                     result[1].sort()
-                self.assertEqual(resultlist,[([1,2],['X'])])
+                self.assertEqual(resultlist,[([1,2],['X'])],'\n net2 [2,1]')
                 resultlist = []
                 func(net2,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 for result in resultlist:
                     result[0].sort()
                     result[1].sort()
-                self.assertEqual(resultlist,[([1,2,],['X','Y'])])
+                self.assertEqual(resultlist,[([1,2,],['X','Y'])],'\n net2 [2,2]')
                 resultlist = []
                 func(net3,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 for result in resultlist:
                     result[0].sort()
                     result[1].sort()
                 resultlist.sort()
-                self.assertEqual(resultlist,[([1,2],['Y','Z']),([1,3],['X','Y'])])
+                self.assertEqual(resultlist,[([1,2],['Y','Z']),([1,3],['X','Y'])],'\n net3 [2,2]')
                 resultlist = []
                 func(net3,[3,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
-                self.assertEqual(resultlist,[])
+                self.assertEqual(resultlist,[],'\n net3 [3,2]')
                 resultlist = []
                 func(net3,[1,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 for result in resultlist:
                     result[0].sort()
                     result[1].sort()
                 resultlist.sort()
-                self.assertEqual(resultlist,[([1],['X','Y','Z'])])
+                self.assertEqual(resultlist,[([1],['X','Y','Z'])],'\n net3 [1,3]')
                 resultlist = []
                 func(net3,[1,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 for result in resultlist:
                     result[0].sort()
                     result[1].sort()
                 resultlist.sort()
-                self.assertEqual(resultlist,[([1],['X','Y']),([1],['Y','Z'])])
+                self.assertEqual(resultlist,[([1],['X','Y']),([1],['Y','Z'])],'\n net3 [1,2]')
                 resultlist = []
                 func(net3,[3,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 for result in resultlist:
                     result[0].sort()
                     result[1].sort()
                 resultlist.sort()
-                self.assertEqual(resultlist,[([1,2,3],['X','Y','Z'])])
+                self.assertEqual(resultlist,[([1,2,3],['X','Y','Z'])],'\n net3 [3,3]')
                 resultlist = []
                 func(net4,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 for result in resultlist:
                     result[0].sort()
                     result[1].sort()
                 resultlist.sort()
-                self.assertEqual(resultlist,[])
+                self.assertEqual(resultlist,[],'\n net4 [2,2]')
                 resultlist = []
                 func(net5,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 for result in resultlist:
                     result[0].sort()
                     result[1].sort()
                 resultlist.sort()
-                self.assertEqual(resultlist,[([0,1],['X','Y']),([0,1],['X','Z']),([0,1],['Y','Z'])])
+                self.assertEqual(resultlist,[([0,1],['X','Y']),([0,1],['X','Z']),([0,1],['Y','Z'])],'\n net5 [2,2]')
                 resultlist = []
                 func(net5,[2,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 for result in resultlist:
                     result[0].sort()
                     result[1].sort()
                 resultlist.sort()
-                self.assertEqual(resultlist,[([0,1],['X','Y','Z'])])
+                self.assertEqual(resultlist,[([0,1],['X','Y','Z'])],'\n net5 [2,3]')
                 resultlist = []
                 func(net6,[2,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 for result in resultlist:
                     result[0].sort()
                     result[1].sort()
                 resultlist.sort()
-                self.assertEqual(resultlist,[([1,2],['X','Y','Z'])])
+                self.assertEqual(resultlist,[([1,2],['X','Y','Z'])],'\n net6 [2,3]')
                 resultlist = []
                 func(net6,[1,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 for result in resultlist:
                     result[0].sort()
                     result[1].sort()
                 resultlist.sort()
-                self.assertEqual(resultlist,[([1],['X','Y','Z'])])
+                self.assertEqual(resultlist,[([1],['X','Y','Z'])],'\n net6 [1,3]')
                 resultlist = []
                 func(net7,[2,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
-                self.assertEqual(resultlist,[])
+                self.assertEqual(resultlist,[],'\n net7 [2,3]')
                 resultlist = []
                 func(net8,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
-                self.assertEqual(resultlist,[])
+                self.assertEqual(resultlist,[],'\n net8 [2,2]')
         
     def test_esu_exhaustive(self):
         subnet_sizes = [(2,1),(2,2),(3,2),(3,3)]
