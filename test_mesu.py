@@ -205,28 +205,29 @@ class TestSampling(unittest.TestCase):
     def test_esu_exhaustive(self):
         subnet_sizes = [(2,1),(2,2),(3,2),(3,3)]
         for subnet_size in subnet_sizes:
-            for _ in range(30):
-                network = er_multilayer_partially_interconnected(random_nodelists(30,10,5),0.05)
+            for _ in range(10):
+                network = er_multilayer_partially_interconnected(random_nodelists(5,5,5),0.9)
                 resultlist_dumb = []
-                resultlist_esu = []
                 dumb.dumb_enumeration(network,resultlist_dumb,nnodes=subnet_size[0],nlayers=subnet_size[1])
-                mesu.mesu(network,subnet_size,lambda S: resultlist_esu.append(tuple(list(x) for x in S)))
-#                esu.sample_multilayer_subgraphs_esu(network,resultlist_esu,sizes=requirement[0],intersections=requirement[1])
                 for result in resultlist_dumb:
                     result[0].sort()
                     result[1].sort()
                 resultlist_dumb.sort()
-                for result in resultlist_esu:
-                    result[0].sort()
-                    result[1].sort()
-                resultlist_esu.sort()
-                try:
-                    self.assertEqual(resultlist_dumb,resultlist_esu)
-                except AssertionError:
-                    savelist = [network,resultlist_dumb,resultlist_esu]
-                    with open('testfail.pickle','wb') as f:
-                        pickle.dump(savelist,f)
-                    raise
+                for func in self.functions_to_test:
+                    with self.subTest(f=func):
+                        resultlist_esu = []
+                        func(network,subnet_size,lambda S: resultlist_esu.append(tuple(list(x) for x in S)))
+                        for result in resultlist_esu:
+                            result[0].sort()
+                            result[1].sort()
+                        resultlist_esu.sort()
+                        try:
+                            self.assertEqual(resultlist_dumb,resultlist_esu)
+                        except AssertionError:
+                            savelist = [network,resultlist_dumb,resultlist_esu]
+                            with open('exhaustive_test_fail.pickle','wb') as f:
+                                pickle.dump(savelist,f)
+                            raise
                 
     def test_esu_insane(self):
         # PyPy recommended for speed
@@ -480,6 +481,6 @@ def test_sampling(**kwargs):
     return unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
 
 if __name__ == '__main__':
-    sys.exit(not test_sampling(exhaustive=False,insane=False,performance=False,distribution_width=False,parameter_sets=False))
+    sys.exit(not test_sampling(exhaustive=True,insane=False,performance=False,distribution_width=False,parameter_sets=False))
 
 
