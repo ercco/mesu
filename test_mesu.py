@@ -80,125 +80,127 @@ def random_nodelists(poolsize,nodes_per_layer,layers,seed=None):
 class TestSampling(unittest.TestCase):
 
     def test_esu_relaxed_concise(self):
-        net1 = net.MultilayerNetwork(aspects=1,fullyInterconnected=False)
-        net2 = net.MultilayerNetwork(aspects=1,fullyInterconnected=False)
-        net2[1,'X'][1,'Y'] = 1
-        net2[1,'X'][2,'X'] = 1
-        net3 = net.MultilayerNetwork(aspects=1,fullyInterconnected=False)
-        net3[1,'X'][1,'Y'] = 1
-        net3[1,'X'][3,'X'] = 1
-        net3[1,'Y'][1,'Z'] = 1
-        net3[1,'Y'][2,'Z'] = 1
-        net4 = net.MultilayerNetwork(aspects=1,fullyInterconnected=True)
-        net4[1,'X'][1,'Y'] = 1
-        net4[1,'X'][2,'X'] = 1
-        net5 = models.full_multilayer(2,['X','Y','Z'])
-        net6 = net.MultilayerNetwork(aspects=1,fullyInterconnected=True)
-        net6[1,'X'][2,'X'] = 1
-        net6[1,'X'][1,'Y'] = 1
-        net6[1,'Y'][1,'Z'] = 1
-        net6[1,'Z'][2,'Z'] = 1
-        net6[2,'Z'][2,'Y'] = 1
-        net7 = net.MultilayerNetwork(aspects=1,fullyInterconnected=True)
-        net7[1,'X'][2,'X'] = 1
-        net7[1,'X'][1,'Y'] = 1
-        net7[1,'Y'][1,'Z'] = 1
-        net7[1,'Z'][2,'Z'] = 1
-        net8 = net.MultilayerNetwork(aspects=1,fullyInterconnected=False)
-        net8[1,'X'][1,'Y'] = 1
-        net8[1,'X'][2,'X'] = 1
-        net8.add_node(2,layer='Y')
-        resultlist = []
-        mesu.mesu(net1,[1,1],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        self.assertEqual(resultlist,[])
-        resultlist = []
-        mesu.mesu(net2,[1,1],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        resultlist.sort()
-        self.assertEqual(resultlist,[([1],['X']),([1],['Y']),([2],['X'])])
-        resultlist = []
-        mesu.mesu(net2,[2,1],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        for result in resultlist:
-            result[0].sort()
-            result[1].sort()
-        self.assertEqual(resultlist,[([1,2],['X'])])
-        resultlist = []
-        mesu.mesu(net2,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        for result in resultlist:
-            result[0].sort()
-            result[1].sort()
-        self.assertEqual(resultlist,[([1,2,],['X','Y'])])
-        resultlist = []
-        mesu.mesu(net3,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        for result in resultlist:
-            result[0].sort()
-            result[1].sort()
-        resultlist.sort()
-        self.assertEqual(resultlist,[([1,2],['Y','Z']),([1,3],['X','Y'])])
-        resultlist = []
-        mesu.mesu(net3,[3,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        self.assertEqual(resultlist,[])
-        resultlist = []
-        mesu.mesu(net3,[1,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        for result in resultlist:
-            result[0].sort()
-            result[1].sort()
-        resultlist.sort()
-        self.assertEqual(resultlist,[([1],['X','Y','Z'])])
-        resultlist = []
-        mesu.mesu(net3,[1,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        for result in resultlist:
-            result[0].sort()
-            result[1].sort()
-        resultlist.sort()
-        self.assertEqual(resultlist,[([1],['X','Y']),([1],['Y','Z'])])
-        resultlist = []
-        mesu.mesu(net3,[3,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        for result in resultlist:
-            result[0].sort()
-            result[1].sort()
-        resultlist.sort()
-        self.assertEqual(resultlist,[([1,2,3],['X','Y','Z'])])
-        resultlist = []
-        mesu.mesu(net4,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        for result in resultlist:
-            result[0].sort()
-            result[1].sort()
-        resultlist.sort()
-        self.assertEqual(resultlist,[])
-        resultlist = []
-        mesu.mesu(net5,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        for result in resultlist:
-            result[0].sort()
-            result[1].sort()
-        resultlist.sort()
-        self.assertEqual(resultlist,[([0,1],['X','Y']),([0,1],['X','Z']),([0,1],['Y','Z'])])
-        resultlist = []
-        mesu.mesu(net5,[2,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        for result in resultlist:
-            result[0].sort()
-            result[1].sort()
-        resultlist.sort()
-        self.assertEqual(resultlist,[([0,1],['X','Y','Z'])])
-        resultlist = []
-        mesu.mesu(net6,[2,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        for result in resultlist:
-            result[0].sort()
-            result[1].sort()
-        resultlist.sort()
-        self.assertEqual(resultlist,[([1,2],['X','Y','Z'])])
-        resultlist = []
-        mesu.mesu(net6,[1,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        for result in resultlist:
-            result[0].sort()
-            result[1].sort()
-        resultlist.sort()
-        self.assertEqual(resultlist,[([1],['X','Y','Z'])])
-        resultlist = []
-        mesu.mesu(net7,[2,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        self.assertEqual(resultlist,[])
-        resultlist = []
-        mesu.mesu(net8,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
-        self.assertEqual(resultlist,[])
+        for func in self.functions_to_test:
+            with self.subTest(f=func):
+                net1 = net.MultilayerNetwork(aspects=1,fullyInterconnected=False)
+                net2 = net.MultilayerNetwork(aspects=1,fullyInterconnected=False)
+                net2[1,'X'][1,'Y'] = 1
+                net2[1,'X'][2,'X'] = 1
+                net3 = net.MultilayerNetwork(aspects=1,fullyInterconnected=False)
+                net3[1,'X'][1,'Y'] = 1
+                net3[1,'X'][3,'X'] = 1
+                net3[1,'Y'][1,'Z'] = 1
+                net3[1,'Y'][2,'Z'] = 1
+                net4 = net.MultilayerNetwork(aspects=1,fullyInterconnected=True)
+                net4[1,'X'][1,'Y'] = 1
+                net4[1,'X'][2,'X'] = 1
+                net5 = models.full_multilayer(2,['X','Y','Z'])
+                net6 = net.MultilayerNetwork(aspects=1,fullyInterconnected=True)
+                net6[1,'X'][2,'X'] = 1
+                net6[1,'X'][1,'Y'] = 1
+                net6[1,'Y'][1,'Z'] = 1
+                net6[1,'Z'][2,'Z'] = 1
+                net6[2,'Z'][2,'Y'] = 1
+                net7 = net.MultilayerNetwork(aspects=1,fullyInterconnected=True)
+                net7[1,'X'][2,'X'] = 1
+                net7[1,'X'][1,'Y'] = 1
+                net7[1,'Y'][1,'Z'] = 1
+                net7[1,'Z'][2,'Z'] = 1
+                net8 = net.MultilayerNetwork(aspects=1,fullyInterconnected=False)
+                net8[1,'X'][1,'Y'] = 1
+                net8[1,'X'][2,'X'] = 1
+                net8.add_node(2,layer='Y')
+                resultlist = []
+                func(net1,[1,1],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                self.assertEqual(resultlist,[])
+                resultlist = []
+                func(net2,[1,1],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                resultlist.sort()
+                self.assertEqual(resultlist,[([1],['X']),([1],['Y']),([2],['X'])])
+                resultlist = []
+                func(net2,[2,1],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                for result in resultlist:
+                    result[0].sort()
+                    result[1].sort()
+                self.assertEqual(resultlist,[([1,2],['X'])])
+                resultlist = []
+                func(net2,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                for result in resultlist:
+                    result[0].sort()
+                    result[1].sort()
+                self.assertEqual(resultlist,[([1,2,],['X','Y'])])
+                resultlist = []
+                func(net3,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                for result in resultlist:
+                    result[0].sort()
+                    result[1].sort()
+                resultlist.sort()
+                self.assertEqual(resultlist,[([1,2],['Y','Z']),([1,3],['X','Y'])])
+                resultlist = []
+                func(net3,[3,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                self.assertEqual(resultlist,[])
+                resultlist = []
+                func(net3,[1,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                for result in resultlist:
+                    result[0].sort()
+                    result[1].sort()
+                resultlist.sort()
+                self.assertEqual(resultlist,[([1],['X','Y','Z'])])
+                resultlist = []
+                func(net3,[1,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                for result in resultlist:
+                    result[0].sort()
+                    result[1].sort()
+                resultlist.sort()
+                self.assertEqual(resultlist,[([1],['X','Y']),([1],['Y','Z'])])
+                resultlist = []
+                func(net3,[3,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                for result in resultlist:
+                    result[0].sort()
+                    result[1].sort()
+                resultlist.sort()
+                self.assertEqual(resultlist,[([1,2,3],['X','Y','Z'])])
+                resultlist = []
+                func(net4,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                for result in resultlist:
+                    result[0].sort()
+                    result[1].sort()
+                resultlist.sort()
+                self.assertEqual(resultlist,[])
+                resultlist = []
+                func(net5,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                for result in resultlist:
+                    result[0].sort()
+                    result[1].sort()
+                resultlist.sort()
+                self.assertEqual(resultlist,[([0,1],['X','Y']),([0,1],['X','Z']),([0,1],['Y','Z'])])
+                resultlist = []
+                func(net5,[2,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                for result in resultlist:
+                    result[0].sort()
+                    result[1].sort()
+                resultlist.sort()
+                self.assertEqual(resultlist,[([0,1],['X','Y','Z'])])
+                resultlist = []
+                func(net6,[2,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                for result in resultlist:
+                    result[0].sort()
+                    result[1].sort()
+                resultlist.sort()
+                self.assertEqual(resultlist,[([1,2],['X','Y','Z'])])
+                resultlist = []
+                func(net6,[1,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                for result in resultlist:
+                    result[0].sort()
+                    result[1].sort()
+                resultlist.sort()
+                self.assertEqual(resultlist,[([1],['X','Y','Z'])])
+                resultlist = []
+                func(net7,[2,3],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                self.assertEqual(resultlist,[])
+                resultlist = []
+                func(net8,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
+                self.assertEqual(resultlist,[])
         
     def test_esu_exhaustive(self):
         subnet_sizes = [(2,1),(2,2),(3,2),(3,3)]
@@ -457,6 +459,7 @@ class TestSampling(unittest.TestCase):
 
 def makesuite(exhaustive=False,insane=False,performance=False,distribution_width=False,parameter_sets=False):
     suite = unittest.TestSuite()
+    TestSampling.functions_to_test = [mesu.mesu,mesu.augmented_esu]
     suite.addTest(TestSampling("test_esu_relaxed_concise"))
     if exhaustive:
         suite.addTest(TestSampling("test_esu_exhaustive"))
@@ -474,9 +477,9 @@ def makesuite(exhaustive=False,insane=False,performance=False,distribution_width
 
 def test_sampling(**kwargs):
     suite=makesuite(**kwargs)
-    return unittest.TextTestRunner().run(suite).wasSuccessful()
+    return unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
 
 if __name__ == '__main__':
-    sys.exit(not test_sampling(exhaustive=True,insane=False,performance=False,distribution_width=False,parameter_sets=False))
+    sys.exit(not test_sampling(exhaustive=False,insane=False,performance=False,distribution_width=False,parameter_sets=False))
 
 
