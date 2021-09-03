@@ -11,6 +11,7 @@ from pymnet.sampling import reqs,dumb,esu
 import random
 import mesu
 import pickle
+import itertools
 
 ### model creating functions
 
@@ -79,7 +80,7 @@ def random_nodelists(poolsize,nodes_per_layer,layers,seed=None):
 
 class TestSampling(unittest.TestCase):
 
-    def test_basic_nets(self):
+    def test_basic_nets_1_aspect(self):
         for func in self.functions_to_test:
             with self.subTest(f=func):
                 net1 = net.MultilayerNetwork(aspects=1,fullyInterconnected=False)
@@ -201,12 +202,12 @@ class TestSampling(unittest.TestCase):
                 resultlist = []
                 func(net8,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 self.assertEqual(resultlist,[],'\n net8 [2,2]')
-        
-    def test_random_nets(self):
+
+    def test_random_nets_1_aspect(self):
         subnet_sizes = [(2,1),(2,2),(3,2),(3,3)]
         for subnet_size in subnet_sizes:
             for _ in range(10):
-                network = er_multilayer_partially_interconnected(random_nodelists(5,5,5),0.9)
+                network = er_multilayer_partially_interconnected(random_nodelists(5,5,5),0.4)
                 resultlist_dumb = []
                 dumb.dumb_enumeration(network,resultlist_dumb,nnodes=subnet_size[0],nlayers=subnet_size[1])
                 for result in resultlist_dumb:
@@ -225,9 +226,65 @@ class TestSampling(unittest.TestCase):
                             self.assertEqual(resultlist_dumb,resultlist_esu)
                         except AssertionError:
                             savelist = [network,resultlist_dumb,resultlist_esu]
-                            with open('exhaustive_test_fail.pickle','wb') as f:
+                            with open('test_random_nets_1_aspect_fail.pickle','wb') as f:
                                 pickle.dump(savelist,f)
                             raise
+
+    def test_small_nets_exhaustive_1_aspect(self):
+        def get_all_subnets(nl_list):
+            M = pymnet.MultilayerNetwork(aspects=1,fullyInterconnected=False)
+            for ii,nl1 in enumerate(nl_list):
+                for nl2 in nl_list[ii+1:]:
+                    M[nl1[0],nl1[1]][nl2[0],nl2[1]] = 1
+            for m in pymnet.transforms.subnet_iter(M):
+                yield m
+        def get_all_nl_lists(nnodes,nlayers):
+            # powerset with >= 2 elems
+            nls = []
+            for n in range(nnodes):
+                for l in range(nlayers):
+                    nls.append((n,l))
+            return itertools.chain.from_iterable(itertools.combinations(nls,r) for r in range(2,len(nls)+1))
+        def test_equivalency(M,func):
+            problems = []
+            for n in range(1,len(list(M.iter_nodes()))):
+                for l in range(1,len(list(M.iter_layers()))):
+                        res_esu = []
+                        res_dumb = []
+                        func(M,(n,l),lambda S: res_esu.append(tuple(list(x) for x in S)))
+                        dumb.dumb_enumeration(M,res_dumb,nnodes=n,nlayers=l)
+                        for result1 in res_dumb:
+                            result1[0].sort()
+                            result1[1].sort()
+                        res_dumb.sort()
+                        for result2 in res_esu:
+                            result2[0].sort()
+                            result2[1].sort()
+                        res_esu.sort()
+                        if not res_esu == res_dumb:
+                            problems.append((n,l))
+            if len(problems) > 0:
+                return False,problems
+            else:
+                return True,problems
+        def check_all_subnets(nl_list):
+            for func in self.functions_to_test:
+                with self.subTest(f=func):
+                    errors = []
+                    for M in get_all_subnets(nl_list):
+                        test_result = test_equivalency(M,func)
+                        if not test_result[0]:
+                            errors.append((M,test_result[1]))
+                    try:
+                        self.assertEqual(len(errors),0)
+                    except AssertionError:
+                        print(nl_list)
+                        raise
+        def run_all_nl_lists(nnodes,nlayers):
+            nl_lists = list(get_all_nl_lists(nnodes,nlayers))
+            for nl_list in nl_lists:
+                check_all_subnets(nl_list)
+        run_all_nl_lists(3,3)
                 
     def test_esu_insane(self):
         # PyPy recommended for speed
@@ -458,12 +515,14 @@ class TestSampling(unittest.TestCase):
             resultlist_esu.sort()
             self.assertEqual(resultlist_dumb,resultlist_esu)
 
-def makesuite(random_nets=True):
+def makesuite(random_nets=True,exhaustive=True):
     suite = unittest.TestSuite()
     TestSampling.functions_to_test = [mesu.mesu,mesu.augmented_esu]
-    suite.addTest(TestSampling("test_basic_nets"))
+    suite.addTest(TestSampling("test_basic_nets_1_aspect"))
     if random_nets:
-        suite.addTest(TestSampling("test_random_nets"))
+        suite.addTest(TestSampling("test_random_nets_1_aspect"))
+    if exhaustive:
+        suite.addTest(TestSampling("test_small_nets_exhaustive_1_aspect"))
     '''
     if insane:
         suite.addTest(TestSampling("test_esu_insane"))
@@ -481,6 +540,6 @@ def test_sampling(**kwargs):
     return unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
 
 if __name__ == '__main__':
-    sys.exit(not test_sampling(random_nets=True))
+    sys.exit(not test_sampling(random_nets=True,exhaustive=True))
 
 
