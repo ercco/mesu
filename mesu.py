@@ -147,9 +147,19 @@ def _valid_esu(M,S,V_subgraph,extension,t,nl):
 ##### Naive algorithm for comparison #####
 
 def naive(M,s,output_function=print):
+    # must check for empty layers since connectivity returns ok for them
     for S in itertools.product(*map(lambda i:list(itertools.combinations(M.slices[i],s[i])),range(M.aspects+1))):
-        if pn.nx.is_connected(pn.transforms.get_underlying_graph(pn.subnet(M,*S))):
-            output_function(S)
+        try:
+            subnet = pn.subnet(M,*S)
+            if pn.nx.is_connected(pn.transforms.get_underlying_graph(subnet)):
+                valid_elem_layers = [set() for _ in S]
+                for nl in subnet.iter_node_layers():
+                    for ii,l in enumerate(nl):
+                        valid_elem_layers[ii].add(l)
+                if valid_elem_layers == [set(S[jj]) for jj in range(len(S))]:
+                    output_function(S)
+        except pn.nx.networkx.NetworkXPointlessConcept:
+            pass
 
 
 
