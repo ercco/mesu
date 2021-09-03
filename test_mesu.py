@@ -226,7 +226,7 @@ class TestSampling(unittest.TestCase):
                             self.assertEqual(resultlist_dumb,resultlist_esu)
                         except AssertionError:
                             savelist = [network,resultlist_dumb,resultlist_esu]
-                            with open('test_random_nets_1_aspect_fail.pickle','wb') as f:
+                            with open('test_random_nets_1_aspect_fail_'+func.__name__+'.pickle','wb') as f:
                                 pickle.dump(savelist,f)
                             raise
 
@@ -278,7 +278,8 @@ class TestSampling(unittest.TestCase):
                     try:
                         self.assertEqual(len(errors),0)
                     except AssertionError:
-                        print(nl_list)
+                        with open('test_small_nets_exhaustive_1_aspect_fail_'+func.__name__+'.pickle','wb') as f:
+                            pickle.dump(errors,f)
                         raise
         def run_all_nl_lists(nnodes,nlayers):
             nl_lists = list(get_all_nl_lists(nnodes,nlayers))
