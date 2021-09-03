@@ -144,7 +144,12 @@ def _valid_esu(M,S,V_subgraph,extension,t,nl):
     else:
         return False
 
+##### Naive algorithm for comparison #####
 
+def naive(M,s,output_function=print):
+    for S in itertools.product(*map(lambda i:list(itertools.combinations(M.slices[i],s[i])),range(M.aspects+1))):
+        if pn.nx.is_connected(pn.transforms.get_underlying_graph(pn.subnet(M,*S))):
+            output_function(S)
 
 
 
