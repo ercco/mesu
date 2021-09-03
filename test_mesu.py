@@ -245,47 +245,36 @@ class TestSampling(unittest.TestCase):
                 for l in range(nlayers):
                     nls.append((n,l))
             return itertools.chain.from_iterable(itertools.combinations(nls,r) for r in range(2,len(nls)+1))
-        def test_equivalency(M,func):
-            problems = []
-            for n in range(1,len(list(M.iter_nodes()))):
-                for l in range(1,len(list(M.iter_layers()))):
-                        res_esu = []
+        def check_all_subnets(nl_list):
+            for M in get_all_subnets(nl_list):
+                for n in range(1,len(list(M.iter_nodes()))):
+                    for l in range(1,len(list(M.iter_layers()))):
                         res_dumb = []
-                        func(M,(n,l),lambda S: res_esu.append(tuple(list(x) for x in S)))
                         dumb.dumb_enumeration(M,res_dumb,nnodes=n,nlayers=l)
                         for result1 in res_dumb:
                             result1[0].sort()
                             result1[1].sort()
                         res_dumb.sort()
-                        for result2 in res_esu:
-                            result2[0].sort()
-                            result2[1].sort()
-                        res_esu.sort()
-                        if not res_esu == res_dumb:
-                            problems.append((n,l))
-            if len(problems) > 0:
-                return False,problems
-            else:
-                return True,problems
-        def check_all_subnets(nl_list):
-            for func in self.functions_to_test:
-                with self.subTest(f=func):
-                    errors = []
-                    for M in get_all_subnets(nl_list):
-                        test_result = test_equivalency(M,func)
-                        if not test_result[0]:
-                            errors.append((M,test_result[1]))
-                    try:
-                        self.assertEqual(len(errors),0)
-                    except AssertionError:
-                        with open('test_small_nets_exhaustive_1_aspect_fail_'+func.__name__+'.pickle','wb') as f:
-                            pickle.dump(errors,f)
-                        raise
+                        for func in self.functions_to_test:
+                            with self.subTest(f=func):
+                                res_esu = []
+                                func(M,(n,l),lambda S: res_esu.append(tuple(list(x) for x in S)))
+                                for result2 in res_esu:
+                                    result2[0].sort()
+                                    result2[1].sort()
+                                res_esu.sort()
+                                try:
+                                    self.assertEqual(res_dumb,res_esu)
+                                except AssertionError:
+                                    savelist = [M,res_dumb,res_esu]
+                                    with open('test_small_nets_exhaustive_1_aspect_fail_'+func.__name__+'.pickle','wb') as f:
+                                        pickle.dump(savelist,f)
+                                    raise
         def run_all_nl_lists(nnodes,nlayers):
             nl_lists = list(get_all_nl_lists(nnodes,nlayers))
             for nl_list in nl_lists:
                 check_all_subnets(nl_list)
-        run_all_nl_lists(3,3)
+        run_all_nl_lists(2,2)
                 
     def test_esu_insane(self):
         # PyPy recommended for speed
