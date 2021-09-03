@@ -79,7 +79,7 @@ def random_nodelists(poolsize,nodes_per_layer,layers,seed=None):
 
 class TestSampling(unittest.TestCase):
 
-    def test_esu_relaxed_concise(self):
+    def test_basic_nets(self):
         for func in self.functions_to_test:
             with self.subTest(f=func):
                 net1 = net.MultilayerNetwork(aspects=1,fullyInterconnected=False)
@@ -202,7 +202,7 @@ class TestSampling(unittest.TestCase):
                 func(net8,[2,2],lambda S: resultlist.append(tuple(list(x) for x in S)))
                 self.assertEqual(resultlist,[],'\n net8 [2,2]')
         
-    def test_esu_exhaustive(self):
+    def test_random_nets(self):
         subnet_sizes = [(2,1),(2,2),(3,2),(3,3)]
         for subnet_size in subnet_sizes:
             for _ in range(10):
@@ -458,12 +458,12 @@ class TestSampling(unittest.TestCase):
             resultlist_esu.sort()
             self.assertEqual(resultlist_dumb,resultlist_esu)
 
-def makesuite(exhaustive=False,insane=False,performance=False,distribution_width=False,parameter_sets=False):
+def makesuite(random_nets=True):
     suite = unittest.TestSuite()
     TestSampling.functions_to_test = [mesu.mesu,mesu.augmented_esu]
-    suite.addTest(TestSampling("test_esu_relaxed_concise"))
-    if exhaustive:
-        suite.addTest(TestSampling("test_esu_exhaustive"))
+    suite.addTest(TestSampling("test_basic_nets"))
+    if random_nets:
+        suite.addTest(TestSampling("test_random_nets"))
     '''
     if insane:
         suite.addTest(TestSampling("test_esu_insane"))
@@ -481,6 +481,6 @@ def test_sampling(**kwargs):
     return unittest.TextTestRunner(verbosity=2).run(suite).wasSuccessful()
 
 if __name__ == '__main__':
-    sys.exit(not test_sampling(exhaustive=True,insane=False,performance=False,distribution_width=False,parameter_sets=False))
+    sys.exit(not test_sampling(random_nets=True))
 
 
