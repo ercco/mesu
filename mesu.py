@@ -20,7 +20,7 @@ def augmented_esu(M,s,output_function=print):
                 extension.add(neighbor)
         _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function)
 
-def _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function,depth=1):
+def _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function):
     if all(len(S[ii])==s[ii] for ii in range(len(s))):
         if _valid_esu(M,S,V_subgraph,extension,t,nl):
             output_function(S)
@@ -42,7 +42,7 @@ def _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function,depth=
         for neighbor in M[new_nl]:
             if neighbor not in N and neighbor not in V_subgraph and t[neighbor] > t[nl]:
                 new_exclusive_neighbors.add(neighbor)
-        _augmented_esu_extend(M,s,S_prime,V_subgraph.union({new_nl}),extension.union(new_exclusive_neighbors),t,nl,output_function,depth=depth+1)
+        _augmented_esu_extend(M,s,S_prime,V_subgraph.union({new_nl}),extension.union(new_exclusive_neighbors),t,nl,output_function)
 
 ##### Aspect-based MESU #####
 
