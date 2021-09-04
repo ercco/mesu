@@ -256,7 +256,7 @@ class TestSampling(unittest.TestCase):
                                 self.assertEqual(resultlist_naive,resultlist_esu)
                             except AssertionError:
                                 savelist = [network,resultlist_naive,resultlist_esu]
-                                with open('test_random_nets_1_aspect_fail_'+func.__name__+'.pickle','wb') as f:
+                                with open('test_random_nets_2_aspects_fail_'+func.__name__+'.pickle','wb') as f:
                                     pickle.dump(savelist,f)
                                 raise
 
