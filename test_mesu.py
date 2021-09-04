@@ -239,7 +239,6 @@ class TestSampling(unittest.TestCase):
                 network = helpers.er_multilayer_any_aspects_deg_1_or_greater([5,5,5],0.3)
                 resultlist_naive = []
                 mesu.naive(network,subnet_size,lambda S: resultlist_naive.append(tuple(list(x) for x in S)))
-                print(len(resultlist_naive))
                 for result in resultlist_naive:
                     result[0].sort()
                     result[1].sort()
