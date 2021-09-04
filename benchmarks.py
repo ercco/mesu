@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import helpers
 
 @helpers.persistent
-def compare_running_times(subnet_sizes = [(2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)],er_params=([10,5,5],0.05)):
+def compare_running_times(subnet_sizes = [(2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)],er_params=([5,5,5],0.1)):
         M = helpers.er_multilayer_any_aspects_deg_1_or_greater(*er_params)
         results = dict()
         for subnet_size in subnet_sizes:
@@ -44,12 +44,14 @@ def plot_running_times(running_times,savename):
     plt.savefig(savename)
     plt.close('all')
 
-def run_benchmark(subnet_sizes=((2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)),er_params=((30,10,10),0.0005)):
+def run_benchmark(subnet_sizes=((2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)),er_params=((5,5,5),0.1)):
     persistent_file_name = str(subnet_sizes).replace(' ','')+str(er_params).replace(' ','')
     result_times = compare_running_times(subnet_sizes=subnet_sizes,er_params=er_params,persistent_file=persistent_file_name+'.pickle')
     plot_running_times(result_times,persistent_file_name+'.pdf')
 
-
+def run_density_sweep():
+    for p in [0.1,0.3,0.5,0.7,0.9]:
+        run_benchmark(er_params=((5,5,5),p))
 
 
 
