@@ -4,6 +4,7 @@
 import random
 import os
 import pickle
+import itertools
 import pymnet as pn
 
 class persistent(object):
@@ -24,6 +25,7 @@ class persistent(object):
             return self.function(*args,**kwargs)
 
 def er_multilayer_any_aspects(l=[10,4,4],p=0.05):
+    # generate all nodelayers and then add random edges between them
     M = pn.MultilayerNetwork(aspects=len(l)-1,directed=False,fullyInterconnected=True)
     for ii,layers_in_aspect in enumerate(l):
         for jj in range(layers_in_aspect):
@@ -33,4 +35,14 @@ def er_multilayer_any_aspects(l=[10,4,4],p=0.05):
         for jj in range(ii+1,len(nls)):
             if random.random() < p:
                 M[nls[ii]][nls[jj]] = 1
+    return M
+
+def er_multilayer_any_aspects_deg_1_or_greater(l=[5,5,5],p=0.05):
+    # only add nodelayers which have at least one edge, net not fully interconnected
+    M = pn.MultilayerNetwork(aspects=len(l)-1,directed=False,fullyInterconnected=False)
+    possible_nls = list(itertools.product(*(list(range(elem_number)) for elem_number in l)))
+    for ii in range(len(possible_nls)):
+        for jj in range(ii+1,len(possible_nls)):
+            if random.random() < p:
+                M[possible_nls[ii]][possible_nls[jj]] = 1
     return M
