@@ -10,6 +10,7 @@ from pymnet import net,models
 from pymnet.sampling import reqs,dumb,esu
 import random
 import mesu
+import helpers
 import pickle
 import itertools
 
@@ -229,6 +230,36 @@ class TestSampling(unittest.TestCase):
                             with open('test_random_nets_1_aspect_fail_'+func.__name__+'.pickle','wb') as f:
                                 pickle.dump(savelist,f)
                             raise
+
+    def test_random_nets_2_aspects(self):
+        #subnet_sizes = [(2,1,1),(2,2,2),(3,2,2),(3,2,3),(3,3,3)]
+        subnet_sizes = [(2,1,1),(2,2,2),(3,2,2)]
+        for subnet_size in subnet_sizes:
+            for _ in range(10):
+                network = helpers.er_multilayer_any_aspects_deg_1_or_greater([5,5,5],0.3)
+                resultlist_naive = []
+                mesu.naive(network,subnet_size,lambda S: resultlist_naive.append(tuple(list(x) for x in S)))
+                print(len(resultlist_naive))
+                for result in resultlist_naive:
+                    result[0].sort()
+                    result[1].sort()
+                resultlist_naive.sort()
+                for func in self.functions_to_test:
+                    if func != mesu.naive:
+                        with self.subTest(f=func):
+                            resultlist_esu = []
+                            func(network,subnet_size,lambda S: resultlist_esu.append(tuple(list(x) for x in S)))
+                            for result in resultlist_esu:
+                                result[0].sort()
+                                result[1].sort()
+                            resultlist_esu.sort()
+                            try:
+                                self.assertEqual(resultlist_naive,resultlist_esu)
+                            except AssertionError:
+                                savelist = [network,resultlist_naive,resultlist_esu]
+                                with open('test_random_nets_1_aspect_fail_'+func.__name__+'.pickle','wb') as f:
+                                    pickle.dump(savelist,f)
+                                raise
 
     def test_small_nets_exhaustive_1_aspect(self):
         def get_all_subnets(nl_list):
@@ -507,10 +538,11 @@ class TestSampling(unittest.TestCase):
 
 def makesuite(random_nets=True,exhaustive=True):
     suite = unittest.TestSuite()
-    TestSampling.functions_to_test = [mesu.mesu,mesu.augmented_esu]
+    TestSampling.functions_to_test = [mesu.mesu,mesu.augmented_esu,mesu.naive]
     suite.addTest(TestSampling("test_basic_nets_1_aspect"))
     if random_nets:
         suite.addTest(TestSampling("test_random_nets_1_aspect"))
+        suite.addTest(TestSampling("test_random_nets_2_aspects"))
     if exhaustive:
         suite.addTest(TestSampling("test_small_nets_exhaustive_1_aspect"))
     '''
