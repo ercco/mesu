@@ -8,8 +8,8 @@ import helpers
 
 @helpers.persistent
 def compare_running_times(subnet_sizes = [(2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)],er_params=([10,5,5],0.05)):
-        M = helpers.er_multilayer_any_aspects(*er_params)
-        result_times = dict()
+        M = helpers.er_multilayer_any_aspects_deg_1_or_greater(*er_params)
+        results = dict()
         for subnet_size in subnet_sizes:
             resultset_mesu = set()
             resultset_esu = set()
@@ -20,8 +20,8 @@ def compare_running_times(subnet_sizes = [(2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4
             mesu.augmented_esu(M,subnet_size,lambda S:resultset_esu.add(tuple(frozenset(e) for e in S)))
             esu_end = time.time()
             assert resultset_mesu == resultset_esu
-            result_times[subnet_size] = (mesu_end-mesu_start,esu_end-esu_start)
-        return result_times
+            results[subnet_size] = (mesu_end-mesu_start,esu_end-esu_start,len(resultset_mesu))
+        return results
 
 def plot_running_times(running_times,savename):
     # running times as dict (s1,s2,s3,...): (x,y); x = mesu time, y = esu time
@@ -35,6 +35,9 @@ def plot_running_times(running_times,savename):
     plt.plot(esu_series)
     plt.legend(['MESU','adapted ESU'])
     plt.xticks(ticks=list(range(len(sorted_subnet_sizes))),labels=[str(s) for s in sorted_subnet_sizes],rotation=45)
+    y_range = plt.gca().get_ylim()
+    for ii,subnet_size in enumerate(sorted_subnet_sizes):
+        plt.text(ii,0.03*(y_range[1]-y_range[0]),str(running_times[subnet_size][2]),horizontalalignment='center',fontsize='x-small')
     plt.ylabel('Running time')
     plt.xlabel('Subgraph size')
     plt.tight_layout(pad=0.1)
