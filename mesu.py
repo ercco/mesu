@@ -29,11 +29,6 @@ def _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function,p):
         if _valid_esu(M,S,V_subgraph,extension,t,nl):
             output_function(S)
         return
-    max_nls = 1
-    for ii in s:
-        max_nls = max_nls*ii
-    if len(V_subgraph) > max_nls:
-        return
     N = set()
     for neighbor in _get_V_subgraph_neighbors(M,V_subgraph):
         N.add(neighbor)
