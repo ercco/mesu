@@ -76,9 +76,7 @@ def _multilayer_extend_subgraph(M,s,S,extension,t,nl,output_function,p):
     if all(len(S[ii])==s[ii] for ii in range(len(s))):
         if _valid(M,S):
             output_function(S)
-            return
-        else:
-            return
+        return
     N = [set() for _ in nl]
     for neighbor in _get_S_neighbors(M,S,t):
         if all(t[addition] > t[nl] for addition in _additions(S,neighbor,t)):
