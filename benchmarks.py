@@ -61,7 +61,7 @@ def run_benchmark(subnet_sizes=((2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)),er_para
 def run_density_sweep(total_p=None):
     subnet_sizes = ((2,1,1),(2,2,1),(2,2,2),(3,1,1),(3,2,1),(3,2,2))
     if total_p is None:
-        for p in [0.1,0.2,0.3,0.4,0.5]:
+        for p in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]:
             run_benchmark(subnet_sizes=subnet_sizes,er_params=((5,5,5),p))
     else:
         for p in [0.1,0.2,0.3,0.4,0.5]:
