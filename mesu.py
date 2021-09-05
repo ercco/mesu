@@ -4,6 +4,7 @@
 import pymnet as pn
 import itertools
 import copy
+import random
 
 ##### Nodelayer-based augmented ESU #####
 
@@ -46,19 +47,22 @@ def _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function):
 
 ##### Aspect-based MESU #####
 
-def mesu(M,s,output_function=print):
+def mesu(M,s,output_function=print,p=None):
+    if p is None:
+        p = (s_i-1 for s_i in s) + 1
     t = dict()
     for ii,nl in enumerate(M.iter_node_layers()):
         t[nl] = ii
     for nl in M.iter_node_layers():
-        S = [{elem_layer} for elem_layer in nl]
-        extension = [set() for elem_layer in nl]
-        for neighbor in M[nl]:
-            if all(t[addition] > t[nl] for addition in _additions(S,neighbor,t)):
-                _add_to_extension(extension,neighbor,S)
-        _multilayer_extend_subgraph(M,s,S,extension,t,nl,output_function)
+        if random.random() < p[0]:
+            S = [{elem_layer} for elem_layer in nl]
+            extension = [set() for elem_layer in nl]
+            for neighbor in M[nl]:
+                if all(t[addition] > t[nl] for addition in _additions(S,neighbor,t)):
+                    _add_to_extension(extension,neighbor,S)
+            _multilayer_extend_subgraph(M,s,S,extension,t,nl,output_function,p)
 
-def _multilayer_extend_subgraph(M,s,S,extension,t,nl,output_function):
+def _multilayer_extend_subgraph(M,s,S,extension,t,nl,output_function,p):
     if all(len(S[ii])==s[ii] for ii in range(len(s))):
         if _valid(M,S):
             output_function(S)
@@ -75,17 +79,18 @@ def _multilayer_extend_subgraph(M,s,S,extension,t,nl,output_function):
         chosen_index = possible_indices[0]
         l = extension[chosen_index].pop()
         possible_indices = _candidate_extension_indices(extension,S,s)
-        extension_prime = copy.deepcopy(extension)
-        S_prime = copy.deepcopy(S)
-        S_prime[chosen_index].add(l)
-        new_nodelayers = {new_nl for new_nl in itertools.product(*S_prime) if new_nl in t}
-        dummy_nl = tuple(l if ii==chosen_index else None for ii in range(len(nl)))
-        for addition in _additions(S,dummy_nl,t):
-            for neighbor in M[addition]:
-                if neighbor not in new_nodelayers:
-                    if all(t[neighbor_addition] > t[nl] for neighbor_addition in _additions(S_prime,neighbor,t)):
-                        _add_to_extension(extension_prime,neighbor,S_prime,N)
-        _multilayer_extend_subgraph(M,s,S_prime,extension_prime,t,nl,output_function)
+        if random.random() < p[sum(len(S_i)-1 for S_i in S)+1]:
+            extension_prime = copy.deepcopy(extension)
+            S_prime = copy.deepcopy(S)
+            S_prime[chosen_index].add(l)
+            new_nodelayers = {new_nl for new_nl in itertools.product(*S_prime) if new_nl in t}
+            dummy_nl = tuple(l if ii==chosen_index else None for ii in range(len(nl)))
+            for addition in _additions(S,dummy_nl,t):
+                for neighbor in M[addition]:
+                    if neighbor not in new_nodelayers:
+                        if all(t[neighbor_addition] > t[nl] for neighbor_addition in _additions(S_prime,neighbor,t)):
+                            _add_to_extension(extension_prime,neighbor,S_prime,N)
+            _multilayer_extend_subgraph(M,s,S_prime,extension_prime,t,nl,output_function,p)
     return
 
 ##### Helpers #####
