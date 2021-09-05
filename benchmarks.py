@@ -24,7 +24,7 @@ def compare_running_times(subnet_sizes = [(2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4
         esu_start = time.time()
         mesu.augmented_esu(M,subnet_size,lambda S:resultset_esu.add(tuple(frozenset(e) for e in S)),p=p)
         esu_end = time.time()
-        if total_p is not None:
+        if total_p is None:
             assert resultset_mesu == resultset_esu
         results[subnet_size] = (mesu_end-mesu_start,esu_end-esu_start,len(resultset_mesu),len(resultset_esu))
     return results
