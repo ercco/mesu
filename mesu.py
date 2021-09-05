@@ -8,25 +8,26 @@ import random
 
 ##### Nodelayer-based augmented ESU #####
 
-def augmented_esu(M,s,output_function=print):
+def augmented_esu(M,s,output_function=print,p=None):
+    if p is None:
+        p = [1] * (sum(s_i-1 for s_i in s) + 1)
     t = dict()
     for ii,nl in enumerate(M.iter_node_layers()):
         t[nl] = ii
     for nl in M.iter_node_layers():
-        S = [{elem_layer} for elem_layer in nl]
-        V_subgraph = {nl}
-        extension = set()
-        for neighbor in M[nl]:
-            if t[neighbor] > t[nl]:
-                extension.add(neighbor)
-        _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function)
+        if random.random() < p[0]:
+            S = [{elem_layer} for elem_layer in nl]
+            V_subgraph = {nl}
+            extension = set()
+            for neighbor in M[nl]:
+                if t[neighbor] > t[nl]:
+                    extension.add(neighbor)
+            _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function,p)
 
-def _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function):
+def _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function,p):
     if all(len(S[ii])==s[ii] for ii in range(len(s))):
         if _valid_esu(M,S,V_subgraph,extension,t,nl):
             output_function(S)
-        return
-    elif any(len(S[ii])>s[ii] for ii in range(len(s))):
         return
     max_nls = 1
     for ii in s:
@@ -39,11 +40,20 @@ def _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function):
     while extension:
         new_nl = extension.pop()
         S_prime = [S[ii].union({new_nl[ii]}) for ii in range(len(nl))]
-        new_exclusive_neighbors = set()
-        for neighbor in M[new_nl]:
-            if neighbor not in N and neighbor not in V_subgraph and t[neighbor] > t[nl]:
-                new_exclusive_neighbors.add(neighbor)
-        _augmented_esu_extend(M,s,S_prime,V_subgraph.union({new_nl}),extension.union(new_exclusive_neighbors),t,nl,output_function)
+        # check if we go over any aspect
+        if any(len(S_prime[ii])>s[ii] for ii in range(len(s))):
+            continue
+        # find probability to proceed, if S is not increased at all then always proceed (prob=1)
+        first_p_index = sum(len(S_i)-1 for S_i in S)+1
+        prob = 1
+        for ii in range(first_p_index,first_p_index+sum(len(S_prime[jj])-len(S[jj]) for jj in range(len(S)))):
+            prob = prob*p[ii]
+        if random.random() < prob:
+            new_exclusive_neighbors = set()
+            for neighbor in M[new_nl]:
+                if neighbor not in N and neighbor not in V_subgraph and t[neighbor] > t[nl]:
+                    new_exclusive_neighbors.add(neighbor)
+            _augmented_esu_extend(M,s,S_prime,V_subgraph.union({new_nl}),extension.union(new_exclusive_neighbors),t,nl,output_function,p)
 
 ##### Aspect-based MESU #####
 
