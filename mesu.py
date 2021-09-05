@@ -49,7 +49,7 @@ def _augmented_esu_extend(M,s,S,V_subgraph,extension,t,nl,output_function):
 
 def mesu(M,s,output_function=print,p=None):
     if p is None:
-        p = (s_i-1 for s_i in s) + 1
+        p = [1] * (sum(s_i-1 for s_i in s) + 1)
     t = dict()
     for ii,nl in enumerate(M.iter_node_layers()):
         t[nl] = ii
