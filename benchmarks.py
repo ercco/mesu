@@ -51,14 +51,22 @@ def plot_running_times(running_times,savename):
     plt.savefig(savename)
     plt.close('all')
 
-def run_benchmark(subnet_sizes=((2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)),er_params=((5,5,5),0.1),total_p=None):
-    persistent_file_name = str(subnet_sizes).replace(' ','')+'_'+str(er_params).replace(' ','')+'_'+str(total_p)
+def run_benchmark(subnet_sizes=((2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)),er_params=((5,5,5),0.1),total_p=None,iter_label=''):
+    if iter_label:
+        iter_label = '_'+iter_label
+    persistent_file_name = str(subnet_sizes).replace(' ','')+'_'+str(er_params).replace(' ','')+'_'+str(total_p)+iter_label
     result_times = compare_running_times(subnet_sizes=subnet_sizes,er_params=er_params,total_p=total_p,persistent_file=persistent_file_name+'.pickle')
     plot_running_times(result_times,persistent_file_name+'.pdf')
 
-def run_density_sweep():
-    for p in [0.001,0.005,0.01,0.05]:
-        run_benchmark(er_params=((5,5,5),p))
+def run_density_sweep(total_p=None):
+    subnet_sizes = ((2,1,1),(2,2,1),(2,2,2),(3,1,1),(3,2,1),(3,2,2))
+    if total_p is None:
+        for p in [0.1,0.2,0.3,0.4,0.5]:
+            run_benchmark(subnet_sizes=subnet_sizes,er_params=((5,5,5),p))
+    else:
+        for p in [0.1,0.2,0.3,0.4,0.5]:
+            for ii in range(10):
+                run_benchmark(subnet_sizes=subnet_sizes,er_params=((10,10,10),p),total_p=total_p,iter_label=str(ii))
 
 
 
