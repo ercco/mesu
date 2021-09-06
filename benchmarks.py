@@ -71,8 +71,8 @@ def run_density_sweep(total_p=None):
 
 def run_heatmap_sweep(subnet_size,total_p_10):
     net_sizes = [[10]*len(subnet_size),[20]*len(subnet_size),[30]*len(subnet_size),[40]*len(subnet_size),[50]*len(subnet_size)]
-    # avg_deg = 100,200,300,400,500
-    densities = [[ii*100/(np.product(net_size)-1) for ii in range(1,5+1)] for net_size in net_sizes]
+    # avg_deg = 100,150,200,250,300
+    densities = [[(100+ii*50)/(np.product(net_size)-1) for ii in range(0,5)] for net_size in net_sizes]
     total_ps = [total_p_10/((net_size[0]/net_sizes[0][0])**len(net_size)) for net_size in net_sizes]
     for ii,net_size in enumerate(net_sizes):
         for density in densities[ii]:
