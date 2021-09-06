@@ -4,6 +4,7 @@
 import mesu
 import time
 import matplotlib.pyplot as plt
+import numpy as np
 import helpers
 
 @helpers.persistent
@@ -68,7 +69,15 @@ def run_density_sweep(total_p=None):
             for ii in range(10):
                 run_benchmark(subnet_sizes=subnet_sizes,er_params=((10,10,10),p),total_p=total_p,iter_label=str(ii))
 
-
+def run_heatmap_sweep(subnet_size,total_p_10):
+    net_sizes = [[10]*len(subnet_size),[20]*len(subnet_size),[30]*len(subnet_size),[40]*len(subnet_size),[50]*len(subnet_size)]
+    # avg_deg = 10,20,30,40,50
+    densities = [[ii*10/(np.product(net_size)-1) for ii in range(1,5+1)] for net_size in net_sizes]
+    total_ps = [total_p_10/((net_size[0]/net_sizes[0][0])**len(net_size)) for net_size in net_sizes]
+    for ii,net_size in enumerate(net_sizes):
+        for density in densities[ii]:
+            for iter_label in range(10):
+                run_benchmark(subnet_sizes=(subnet_size,),er_params=(net_size,density),total_p=total_ps[ii],iter_label=str(iter_label))
 
 
 
