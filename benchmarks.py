@@ -127,10 +127,21 @@ def run_density_sweep(subnet_sizes=((2,1,1),(2,2,1),(2,2,2),(3,1,1),(3,2,1),(3,2
             fig_savename = str(subnet_sizes).replace(' ','')+'_'+str(((10,10,10),p)).replace(' ','')+'_'+str(total_p)+'_alliters.pdf'
             plot_running_times(all_result_times[p],fig_savename,y_log=True)
 
+def run_sampling_prob_sweep(subnet_sizes=((2,1,1),(2,2,1),(2,2,2),(3,1,1),(3,2,1),(3,2,2)),p_er=0.1,total_p=[0.02,0.04,0.06,0.08,0.10]):
+    all_result_times = dict()
+    for sampling_p in total_p:
+        all_result_times[sampling_p] = []
+        for ii in range(10):
+            all_result_times[sampling_p].append(run_benchmark(subnet_sizes=subnet_sizes,er_params=((10,10,10),p_er),total_p=sampling_p,iter_label=str(ii),return_result=True))
+        fig_savename = str(subnet_sizes).replace(' ','')+'_'+str(((10,10,10),p_er)).replace(' ','')+'_'+str(sampling_p)+'_alliters.pdf'
+        plot_running_times(all_result_times[sampling_p],fig_savename,y_log=True)
+
 def run_heatmap_sweep(subnet_size,total_p_10):
     net_sizes = [[10]*len(subnet_size),[20]*len(subnet_size),[30]*len(subnet_size),[40]*len(subnet_size),[50]*len(subnet_size)]
     # avg_deg = 100,150,200,250,300
-    densities = [[(100+ii*50)/(np.product(net_size)-1) for ii in range(0,5)] for net_size in net_sizes]
+    # densities = [[(100+ii*50)/(np.product(net_size)-1) for ii in range(0,5)] for net_size in net_sizes]
+    # INSTEAD: just create nets by simple density?
+    densities = [[0.10,0.11,0.12,0.13,0.14,0.15]]*len(net_sizes)
     total_ps = [total_p_10/((net_size[0]/net_sizes[0][0])**len(net_size)) for net_size in net_sizes]
     for ii,net_size in enumerate(net_sizes):
         for density in densities[ii]:
