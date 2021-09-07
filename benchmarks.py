@@ -94,11 +94,11 @@ def plot_running_times(running_times,savename,y_log=False,legend=True):
     y_range = plt.gca().get_ylim()
     for ii,subnet_size in enumerate(sorted_subnet_sizes):
         if isinstance(running_times,dict):
-            plt.text(ii,0.025*(y_range[1]-y_range[0]),str(mesu_numbers[ii]),horizontalalignment='center',color='#1f77b4',fontsize='x-small')
-            plt.text(ii,0.0*(y_range[1]-y_range[0]),str(esu_numbers[ii]),horizontalalignment='center',color='#ff7f0e',fontsize='x-small')
+            plt.text(ii,mesu_series[ii],str(mesu_numbers[ii]),horizontalalignment='center',color='#1f77b4',fontsize='xx-small')
+            plt.text(ii,esu_series[ii],str(esu_numbers[ii]),horizontalalignment='center',color='#ff7f0e',fontsize='xx-small')
         else:
-            plt.text(ii,0.025*(y_range[1]-y_range[0]),str(mesu_numbers[ii])+r'$\pm$'+str(np.around(mesu_number_errors[ii],1)),horizontalalignment='center',color='#1f77b4',fontsize='x-small')
-            plt.text(ii,0.0*(y_range[1]-y_range[0]),str(esu_numbers[ii])+r'$\pm$'+str(np.around(esu_number_errors[ii],1)),horizontalalignment='center',color='#ff7f0e',fontsize='x-small')
+            plt.text(ii,mesu_series[ii],str(mesu_numbers[ii])+r'$\pm$'+str(np.around(mesu_number_errors[ii],1)),horizontalalignment='center',color='#1f77b4',fontsize='xx-small')
+            plt.text(ii,esu_series[ii],str(esu_numbers[ii])+r'$\pm$'+str(np.around(esu_number_errors[ii],1)),horizontalalignment='center',color='#ff7f0e',fontsize='xx-small')
     plt.ylabel('Running time')
     plt.xlabel('Subgraph size')
     plt.tight_layout(pad=0.1)
@@ -114,14 +114,13 @@ def run_benchmark(subnet_sizes=((2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)),er_para
     if return_result:
         return result_times
 
-def run_density_sweep(total_p=None):
-    subnet_sizes = ((2,1,1),(2,2,1),(2,2,2),(3,1,1),(3,2,1),(3,2,2))
+def run_density_sweep(subnet_sizes=((2,1,1),(2,2,1),(2,2,2),(3,1,1),(3,2,1),(3,2,2)),p_er=[0.1,0.2,0.3,0.4,0.5],total_p=None):
     if total_p is None:
-        for p in [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]:
+        for p in p_er:
             run_benchmark(subnet_sizes=subnet_sizes,er_params=((5,5,5),p))
     else:
         all_result_times = dict()
-        for p in [0.1,0.2,0.3,0.4,0.5]:
+        for p in p_er:
             all_result_times[p] = []
             for ii in range(10):
                 all_result_times[p].append(run_benchmark(subnet_sizes=subnet_sizes,er_params=((10,10,10),p),total_p=total_p,iter_label=str(ii),return_result=True))
