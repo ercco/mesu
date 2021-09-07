@@ -39,9 +39,13 @@ def plot_running_times(running_times,savename,y_log=False,legend=True):
         esu_series = []
         mesu_errors = None
         esu_errors = None
+        mesu_numbers = []
+        esu_numbers = []
         for s in sorted_subnet_sizes:
             mesu_series.append(running_times[s][0])
             esu_series.append(running_times[s][1])
+            mesu_numbers.append(running_times[s][2])
+            esu_numbers.append(running_times[s][3])
     else:
         sorted_subnet_sizes = sorted(running_times[0].keys())
         mesu_series = []
@@ -68,6 +72,18 @@ def plot_running_times(running_times,savename,y_log=False,legend=True):
             esu_numbers.append(np.mean(esu_iters[1]))
             mesu_number_errors.append(np.std(mesu_iters[1]))
             esu_number_errors.append(np.std(esu_iters[1]))
+    # sort by maximum for each subnet size
+    max_arg_list = np.argsort([max(m,e) for m,e in zip(mesu_series,esu_series)])
+    mesu_series = [mesu_series[ii] for ii in max_arg_list]
+    esu_series = [esu_series[ii] for ii in max_arg_list]
+    mesu_numbers = [mesu_numbers[ii] for ii in max_arg_list]
+    esu_numbers = [esu_numbers[ii] for ii in max_arg_list]
+    if not isinstance(running_times,dict):
+        mesu_errors = [mesu_errors[ii] for ii in max_arg_list]
+        esu_errors = [esu_errors[ii] for ii in max_arg_list]
+        mesu_number_errors = [mesu_number_errors[ii] for ii in max_arg_list]
+        esu_number_errors = [esu_number_errors[ii] for ii in max_arg_list]
+    sorted_subnet_sizes = [sorted_subnet_sizes[ii] for ii in max_arg_list]
     plt.errorbar(x=range(len(mesu_series)),y=mesu_series,yerr=mesu_errors,label='MESU',color='#1f77b4')
     plt.errorbar(x=range(len(esu_series)),y=esu_series,yerr=esu_errors,label='adapted ESU',color='#ff7f0e')
     if legend:
@@ -78,8 +94,8 @@ def plot_running_times(running_times,savename,y_log=False,legend=True):
     y_range = plt.gca().get_ylim()
     for ii,subnet_size in enumerate(sorted_subnet_sizes):
         if isinstance(running_times,dict):
-            plt.text(ii,0.025*(y_range[1]-y_range[0]),str(running_times[subnet_size][2]),horizontalalignment='center',color='#1f77b4',fontsize='x-small')
-            plt.text(ii,0.0*(y_range[1]-y_range[0]),str(running_times[subnet_size][3]),horizontalalignment='center',color='#ff7f0e',fontsize='x-small')
+            plt.text(ii,0.025*(y_range[1]-y_range[0]),str(mesu_numbers[ii]),horizontalalignment='center',color='#1f77b4',fontsize='x-small')
+            plt.text(ii,0.0*(y_range[1]-y_range[0]),str(esu_numbers[ii]),horizontalalignment='center',color='#ff7f0e',fontsize='x-small')
         else:
             plt.text(ii,0.025*(y_range[1]-y_range[0]),str(mesu_numbers[ii])+r'$\pm$'+str(np.around(mesu_number_errors[ii],1)),horizontalalignment='center',color='#1f77b4',fontsize='x-small')
             plt.text(ii,0.0*(y_range[1]-y_range[0]),str(esu_numbers[ii])+r'$\pm$'+str(np.around(esu_number_errors[ii],1)),horizontalalignment='center',color='#ff7f0e',fontsize='x-small')
