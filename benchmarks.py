@@ -148,6 +148,13 @@ def run_heatmap_sweep(subnet_size,total_p_10):
             for iter_label in range(10):
                 run_benchmark(subnet_sizes=(subnet_size,),er_params=(net_size,density),total_p=total_ps[ii],iter_label=str(iter_label))
 
+def run_heatmap_sweep_density_and_sampling_prob(subnet_size):
+    densities = [0.1,0.15,0.2,0.25,0.3]
+    sampling_probs = [0.001,0.004,0.007,0.01]
+    for d in densities:
+        for sampling_p in sampling_probs:
+            for iter_label in range(10):
+                run_benchmark(subnet_sizes=(subnet_size,),er_params=((10,10,10),d),total_p=sampling_p,iter_label=str(iter_label))
 
 
 
