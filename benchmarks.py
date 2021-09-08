@@ -151,13 +151,35 @@ def run_heatmap_sweep(subnet_size,total_p_10):
 def run_heatmap_sweep_density_and_sampling_prob(subnet_size):
     densities = [0.1,0.15,0.2,0.25,0.3]
     sampling_probs = [0.001,0.004,0.007,0.01]
+    resultgrid = []
     for d in densities:
+        x_direction_list = []
         for sampling_p in sampling_probs:
+            iterlist = []
             for iter_label in range(10):
-                run_benchmark(subnet_sizes=(subnet_size,),er_params=((10,10,10),d),total_p=sampling_p,iter_label=str(iter_label))
+                iterlist.append(run_benchmark(subnet_sizes=(subnet_size,),er_params=((10,10,10),d),total_p=sampling_p,iter_label=str(iter_label),return_result=True))
+            x_direction_list.append(iterlist)
+        resultgrid.append(x_direction_list)
+    plot_heatmap_from_iters(resultgrid,sampling_probs,densities,subnet_size)
 
-
-
+def plot_heatmap_from_iters(resultgrid,x_axis,y_axis,subnet_size):
+    heatvaluegrid = []
+    for jj,_ in enumerate(resultgrid):
+        heat_x_direction_list = []
+        for ii,_ in enumerate(resultgrid[jj]):
+            mesu_iters = ([],[])
+            esu_iters = ([],[])
+            for kk,_ in enumerate(resultgrid[jj][ii]):
+                mesu_iters[0].append(resultgrid[jj][ii][kk][subnet_size][0])
+                mesu_iters[1].append(resultgrid[jj][ii][kk][subnet_size][2])
+                esu_iters[0].append(resultgrid[jj][ii][kk][subnet_size][1])
+                esu_iters[1].append(resultgrid[jj][ii][kk][subnet_size][3])
+            heat_x_direction_list.append(np.mean(mesu_iters[0])/np.mean(esu_iters[0]))
+        heatvaluegrid.append(heat_x_direction_list)
+    fig,ax = plt.subplots()
+    helpers.heatmap(np.array(heatvaluegrid),[str(y) for y in y_axis],[str(x) for x in x_axis],ax=ax,cbarlabel='T(mesu)/T(a-esu)',cmap='PuOr')
+    fig.tight_layout()
+    plt.show()
 
 
 
