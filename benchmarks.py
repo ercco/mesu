@@ -164,6 +164,23 @@ def run_heatmap_sweep_density_and_sampling_prob(subnet_size):
     savename = str(subnet_size).replace(' ','')+'_'+str(((10,10,10),densities)).replace(' ','')+'_'+str(sampling_probs).replace(' ','')+'_heatmap.pdf'
     plot_heatmap_from_iters(resultgrid,sampling_probs,densities,subnet_size,xlabel='Sampling p',ylabel='Density',title=str(subnet_size)+', net: '+str((10,10,10)),savename=savename,center=1)
 
+def run_heatmap_sweep_density_and_net_size(subnet_size):
+    densities = [0.1,0.15,0.2,0.25,0.3]
+    net_sizes = [(10,10,10),(11,11,11),(12,12,12),(13,13,13),(14,14,14)]
+    sampling_p = 0.001
+    resultgrid = []
+    for d in densities:
+        x_direction_list = []
+        for net_size in net_sizes:
+            iterlist = []
+            for iter_label in range(10):
+                iterlist.append(run_benchmark(subnet_sizes=(subnet_size,),er_params=(net_size,d),total_p=sampling_p,iter_label=str(iter_label),return_result=True))
+            x_direction_list.append(iterlist)
+        resultgrid.append(x_direction_list)
+    savename = str(subnet_size).replace(' ','')+'_'+str(net_sizes).replace(' ','')+'_'+str(sampling_p).replace(' ','')+'_heatmap.pdf'
+    plot_heatmap_from_iters(resultgrid,net_sizes,densities,subnet_size,xlabel='Net size',ylabel='Density',title=str(subnet_size)+', sampling p: '+str(sampling_p),savename=savename,center=1)
+
+
 def plot_heatmap_from_iters(resultgrid,x_axis,y_axis,subnet_size,xlabel,ylabel,title,savename='',center=1):
     heatvaluegrid = []
     for jj,_ in enumerate(resultgrid):
