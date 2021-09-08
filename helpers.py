@@ -7,6 +7,7 @@ import pickle
 import itertools
 import pymnet as pn
 import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 
 class persistent(object):
