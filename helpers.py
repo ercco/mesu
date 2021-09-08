@@ -49,7 +49,7 @@ def er_multilayer_any_aspects_deg_1_or_greater(l=[5,5,5],p=0.05):
                 M[possible_nls[ii]][possible_nls[jj]] = 1
     return M
 
-def heatmap(data, row_labels, col_labels, ax=None,
+def heatmap(data, row_labels, col_labels, xlabel, ylabel, title='', ax=None,
             cbar_kw={}, cbarlabel="", **kwargs):
     """
     Create a heatmap from a numpy array and two lists of labels.
@@ -82,6 +82,7 @@ def heatmap(data, row_labels, col_labels, ax=None,
     # Create colorbar
     cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw)
     cbar.ax.set_ylabel(cbarlabel, rotation=-90, va="bottom")
+    cbar.outline.set_visible(False)
 
     # Show all ticks and label them with the respective list entries.
     ax.set_xticks(np.arange(data.shape[1]))
@@ -100,6 +101,11 @@ def heatmap(data, row_labels, col_labels, ax=None,
     # Turn spines off and create white grid.
     #ax.spines[:].set_visible(False)
     ax.set_frame_on(False)
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    if title:
+        ax.set_title(title)
 
     ax.set_xticks(np.arange(data.shape[1]+1)-.5, minor=True)
     ax.set_yticks(np.arange(data.shape[0]+1)-.5, minor=True)

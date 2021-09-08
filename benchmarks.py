@@ -4,6 +4,7 @@
 import mesu
 import time
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 import numpy as np
 import helpers
 
@@ -160,9 +161,10 @@ def run_heatmap_sweep_density_and_sampling_prob(subnet_size):
                 iterlist.append(run_benchmark(subnet_sizes=(subnet_size,),er_params=((10,10,10),d),total_p=sampling_p,iter_label=str(iter_label),return_result=True))
             x_direction_list.append(iterlist)
         resultgrid.append(x_direction_list)
-    plot_heatmap_from_iters(resultgrid,sampling_probs,densities,subnet_size)
+    savename = str(subnet_size).replace(' ','')+'_'+str(((10,10,10),densities)).replace(' ','')+'_'+str(sampling_probs).replace(' ','')+'_heatmap.pdf'
+    plot_heatmap_from_iters(resultgrid,sampling_probs,densities,subnet_size,xlabel='Sampling p',ylabel='Density',title=str(subnet_size)+', net: '+str((10,10,10)),savename=savename,center=1)
 
-def plot_heatmap_from_iters(resultgrid,x_axis,y_axis,subnet_size):
+def plot_heatmap_from_iters(resultgrid,x_axis,y_axis,subnet_size,xlabel,ylabel,title,savename='',center=1):
     heatvaluegrid = []
     for jj,_ in enumerate(resultgrid):
         heat_x_direction_list = []
@@ -177,9 +179,12 @@ def plot_heatmap_from_iters(resultgrid,x_axis,y_axis,subnet_size):
             heat_x_direction_list.append(np.mean(mesu_iters[0])/np.mean(esu_iters[0]))
         heatvaluegrid.append(heat_x_direction_list)
     fig,ax = plt.subplots()
-    helpers.heatmap(np.array(heatvaluegrid),[str(y) for y in y_axis],[str(x) for x in x_axis],ax=ax,cbarlabel='T(mesu)/T(a-esu)',cmap='PuOr')
+    helpers.heatmap(np.array(heatvaluegrid),[str(y) for y in y_axis],[str(x) for x in x_axis],xlabel=xlabel,ylabel=ylabel,title=title,ax=ax,cbarlabel='T(mesu)/T(aesu)',norm=colors.TwoSlopeNorm(vcenter=center),cmap='PuOr')
     fig.tight_layout()
-    plt.show()
+    if savename:
+        fig.savefig(savename)
+    else:
+        plt.show()
 
 
 
