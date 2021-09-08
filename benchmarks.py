@@ -180,9 +180,9 @@ def plot_heatmap_from_iters(resultgrid,x_axis,y_axis,subnet_size,xlabel,ylabel,t
         heatvaluegrid.append(heat_x_direction_list)
     fig,ax = plt.subplots()
     helpers.heatmap(np.array(heatvaluegrid),[str(y) for y in y_axis],[str(x) for x in x_axis],xlabel=xlabel,ylabel=ylabel,title=title,ax=ax,cbarlabel='T(mesu)/T(aesu)',norm=colors.TwoSlopeNorm(vcenter=center),cmap='PuOr')
-    fig.tight_layout()
+    fig.tight_layout(pad=0.1)
     if savename:
-        fig.savefig(savename)
+        fig.savefig(savename,bbox_inches='tight')
     else:
         plt.show()
 
