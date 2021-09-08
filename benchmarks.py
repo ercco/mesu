@@ -5,6 +5,7 @@ import mesu
 import time
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+from matplotlib.lines import Line2D
 import numpy as np
 import helpers
 
@@ -31,9 +32,13 @@ def compare_running_times(subnet_sizes = [(2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4
         results[subnet_size] = (mesu_end-mesu_start,esu_end-esu_start,len(resultset_mesu),len(resultset_esu))
     return results
 
-def plot_running_times(running_times,savename,y_log=False,legend=True):
+def plot_running_times(running_times,savename,y_log=False,legend=True,plot_to_ax=None,linestyle='solid'):
     # running times as dict (s1,s2,s3,...): (x,y,z,w); x = mesu time, y = esu time, z = number of mesu subg's, w = number of esu subg's
     # or as iterable of such dicts, in which case mean and stddev are plotted
+    if plot_to_ax is None:
+        fig,ax = plt.subplots()
+    else:
+        ax = plot_to_ax
     if isinstance(running_times,dict):
         sorted_subnet_sizes = sorted(running_times.keys())
         mesu_series = []
@@ -85,26 +90,29 @@ def plot_running_times(running_times,savename,y_log=False,legend=True):
         mesu_number_errors = [mesu_number_errors[ii] for ii in max_arg_list]
         esu_number_errors = [esu_number_errors[ii] for ii in max_arg_list]
     sorted_subnet_sizes = [sorted_subnet_sizes[ii] for ii in max_arg_list]
-    plt.errorbar(x=range(len(mesu_series)),y=mesu_series,yerr=mesu_errors,label='MESU',color='#1f77b4')
-    plt.errorbar(x=range(len(esu_series)),y=esu_series,yerr=esu_errors,label='adapted ESU',color='#ff7f0e')
+    ax.errorbar(x=range(len(mesu_series)),y=mesu_series,yerr=mesu_errors,label='MESU',color='#1f77b4',linestyle=linestyle)
+    ax.errorbar(x=range(len(esu_series)),y=esu_series,yerr=esu_errors,label='adapted ESU',color='#ff7f0e',linestyle=linestyle)
     if legend:
-        plt.legend()
+        ax.legend()
     if y_log:
-        plt.gca().set_yscale('log')
-    plt.xticks(ticks=list(range(len(sorted_subnet_sizes))),labels=[str(s) for s in sorted_subnet_sizes],rotation=45)
-    y_range = plt.gca().get_ylim()
+        ax.set_yscale('log')
+    #plt.xticks(ticks=list(range(len(sorted_subnet_sizes))),labels=[str(s) for s in sorted_subnet_sizes],rotation=45)
+    ax.set_xticks(ticks=list(range(len(sorted_subnet_sizes))))
+    ax.set_xticklabels([str(s) for s in sorted_subnet_sizes],rotation=45)
+    y_range = ax.get_ylim()
     for ii,subnet_size in enumerate(sorted_subnet_sizes):
         if isinstance(running_times,dict):
-            plt.text(ii,mesu_series[ii],str(mesu_numbers[ii]),horizontalalignment='center',color='#1f77b4',fontsize='xx-small')
-            plt.text(ii,esu_series[ii],str(esu_numbers[ii]),horizontalalignment='center',color='#ff7f0e',fontsize='xx-small')
+            ax.text(ii,mesu_series[ii],str(mesu_numbers[ii]),horizontalalignment='center',color='#1f77b4',fontsize='xx-small')
+            ax.text(ii,esu_series[ii],str(esu_numbers[ii]),horizontalalignment='center',color='#ff7f0e',fontsize='xx-small')
         else:
-            plt.text(ii,mesu_series[ii],str(mesu_numbers[ii])+r'$\pm$'+str(np.around(mesu_number_errors[ii],1)),horizontalalignment='center',color='#1f77b4',fontsize='xx-small')
-            plt.text(ii,esu_series[ii],str(esu_numbers[ii])+r'$\pm$'+str(np.around(esu_number_errors[ii],1)),horizontalalignment='center',color='#ff7f0e',fontsize='xx-small')
-    plt.ylabel('Running time')
-    plt.xlabel('Subgraph size')
-    plt.tight_layout(pad=0.1)
-    plt.savefig(savename)
-    plt.close('all')
+            ax.text(ii,mesu_series[ii],str(mesu_numbers[ii])+r'$\pm$'+str(np.around(mesu_number_errors[ii],1)),horizontalalignment='center',color='#1f77b4',fontsize='xx-small')
+            ax.text(ii,esu_series[ii],str(esu_numbers[ii])+r'$\pm$'+str(np.around(esu_number_errors[ii],1)),horizontalalignment='center',color='#ff7f0e',fontsize='xx-small')
+    if plot_to_ax is None:
+        plt.ylabel('Running time')
+        plt.xlabel('Subgraph size')
+        plt.tight_layout(pad=0.1)
+        plt.savefig(savename)
+        plt.close('all')
 
 def run_benchmark(subnet_sizes=((2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)),er_params=((5,5,5),0.1),total_p=None,iter_label='',return_result=False):
     if iter_label:
@@ -121,12 +129,27 @@ def run_density_sweep(subnet_sizes=((2,1,1),(2,2,1),(2,2,2),(3,1,1),(3,2,1),(3,2
             run_benchmark(subnet_sizes=subnet_sizes,er_params=((5,5,5),p))
     else:
         all_result_times = dict()
+        combined_plot_fig,combined_plot_ax = plt.subplots()
         for p in p_er:
             all_result_times[p] = []
             for ii in range(10):
                 all_result_times[p].append(run_benchmark(subnet_sizes=subnet_sizes,er_params=((10,10,10),p),total_p=total_p,iter_label=str(ii),return_result=True))
             fig_savename = str(subnet_sizes).replace(' ','')+'_'+str(((10,10,10),p)).replace(' ','')+'_'+str(total_p)+'_alliters.pdf'
             plot_running_times(all_result_times[p],fig_savename,y_log=True)
+            if p in (0.1,0.5):
+                if p == 0.1:
+                    linestyle = 'dashed'
+                if p == 0.5:
+                    linestyle = 'solid'
+                plot_running_times(all_result_times[p],savename='should_not_exist',y_log=True,legend=False,plot_to_ax=combined_plot_ax,linestyle=linestyle)
+        combined_plot_ax.set_ylabel('Running time')
+        combined_plot_ax.set_xlabel('Subgraph size')
+        combined_plot_fig.tight_layout(pad=0.1)
+        custom_legend_lines = [Line2D([0],[0],color='#1f77b4'), Line2D([0],[0],color='#ff7f0e'),Line2D([0],[0],color='black',linestyle='dashed'),Line2D([0],[0],color='black',linestyle='solid')]
+        combined_plot_ax.legend(custom_legend_lines,['MESU','AESU','density = 0.1','density = 0.5'])
+        combined_savename = str(subnet_sizes).replace(' ','')+'_'+str(((10,10,10),(0.1,0.3,0.5))).replace(' ','')+'_'+str(total_p)+'_combined.pdf'
+        combined_plot_fig.savefig(combined_savename,bbox_inches='tight')
+        plt.close('all')
 
 def run_sampling_prob_sweep(subnet_sizes=((2,1,1),(2,2,1),(2,2,2),(3,1,1),(3,2,1),(3,2,2)),p_er=0.1,total_p=[0.02,0.04,0.06,0.08,0.10]):
     all_result_times = dict()
@@ -151,7 +174,7 @@ def run_heatmap_sweep(subnet_size,total_p_10):
 
 def run_heatmap_sweep_density_and_sampling_prob(subnet_size):
     densities = [0.1,0.15,0.2,0.25,0.3]
-    sampling_probs = [0.001,0.004,0.007,0.01]
+    sampling_probs = [0.1,0.3,0.5,0.7,0.9]
     resultgrid = []
     for d in densities:
         x_direction_list = []
