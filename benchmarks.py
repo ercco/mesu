@@ -32,7 +32,7 @@ def compare_running_times(subnet_sizes = [(2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4
         results[subnet_size] = (mesu_end-mesu_start,esu_end-esu_start,len(resultset_mesu),len(resultset_esu))
     return results
 
-def plot_running_times(running_times,savename,y_log=False,legend=True,plot_to_ax=None,linestyle='solid'):
+def plot_running_times(running_times,savename,y_log=False,legend=True,plot_to_ax=None,linestyle='solid',show_numbers=True):
     # running times as dict (s1,s2,s3,...): (x,y,z,w); x = mesu time, y = esu time, z = number of mesu subg's, w = number of esu subg's
     # or as iterable of such dicts, in which case mean and stddev are plotted
     if plot_to_ax is None:
@@ -100,13 +100,14 @@ def plot_running_times(running_times,savename,y_log=False,legend=True,plot_to_ax
     ax.set_xticks(ticks=list(range(len(sorted_subnet_sizes))))
     ax.set_xticklabels([str(s) for s in sorted_subnet_sizes],rotation=45)
     y_range = ax.get_ylim()
-    for ii,subnet_size in enumerate(sorted_subnet_sizes):
-        if isinstance(running_times,dict):
-            ax.text(ii,mesu_series[ii],str(mesu_numbers[ii]),horizontalalignment='center',color='#1f77b4',fontsize='xx-small')
-            ax.text(ii,esu_series[ii],str(esu_numbers[ii]),horizontalalignment='center',color='#ff7f0e',fontsize='xx-small')
-        else:
-            ax.text(ii,mesu_series[ii],str(mesu_numbers[ii])+r'$\pm$'+str(np.around(mesu_number_errors[ii],1)),horizontalalignment='center',color='#1f77b4',fontsize='xx-small')
-            ax.text(ii,esu_series[ii],str(esu_numbers[ii])+r'$\pm$'+str(np.around(esu_number_errors[ii],1)),horizontalalignment='center',color='#ff7f0e',fontsize='xx-small')
+    if show_numbers:
+        for ii,subnet_size in enumerate(sorted_subnet_sizes):
+            if isinstance(running_times,dict):
+                ax.text(ii,mesu_series[ii],str(mesu_numbers[ii]),horizontalalignment='center',color='#1f77b4',fontsize='xx-small')
+                ax.text(ii,esu_series[ii],str(esu_numbers[ii]),horizontalalignment='center',color='#ff7f0e',fontsize='xx-small')
+            else:
+                ax.text(ii,mesu_series[ii],str(mesu_numbers[ii])+r'$\pm$'+str(np.around(mesu_number_errors[ii],1)),horizontalalignment='center',color='#1f77b4',fontsize='xx-small')
+                ax.text(ii,esu_series[ii],str(esu_numbers[ii])+r'$\pm$'+str(np.around(esu_number_errors[ii],1)),horizontalalignment='center',color='#ff7f0e',fontsize='xx-small')
     if plot_to_ax is None:
         plt.ylabel('Running time')
         plt.xlabel('Subgraph size')
@@ -162,13 +163,13 @@ def plot_combined_with_different_sampling_ps():
             linestyle = 'dashed'
         if er_params[1] == 0.5:
             linestyle = 'solid'
-        plot_running_times(alliters,savename='should_not_exist',y_log=True,legend=False,plot_to_ax=combined_plot_ax,linestyle=linestyle)
+        plot_running_times(alliters,savename='should_not_exist',y_log=True,legend=False,plot_to_ax=combined_plot_ax,linestyle=linestyle,show_numbers=False)
     combined_plot_ax.set_ylabel('Running time')
     combined_plot_ax.set_xlabel('Subgraph size')
     combined_plot_fig.tight_layout(pad=0.1)
     custom_legend_lines = [Line2D([0],[0],color='#1f77b4'), Line2D([0],[0],color='#ff7f0e'),Line2D([0],[0],color='black',linestyle='dashed'),Line2D([0],[0],color='black',linestyle='solid')]
     combined_plot_ax.legend(custom_legend_lines,['MESU','AESU',r'density = 0.1, $p_{tot}$ = 0.01',r'density = 0.5, $p_{tot}$ = 0.0001'])
-    combined_savename = str(subnet_sizes).replace(' ','')+'_'+str(((10,10,10),(0.1,0.5))).replace(' ','')+'_'+str((0.01,0.0001))+'_combined.pdf'
+    combined_savename = str(subnet_sizes).replace(' ','')+'_'+str(((10,10,10),(0.1,0.5))).replace(' ','')+'_'+str((0.01,0.0001))+'_nonumbers_combined.pdf'
     combined_plot_fig.savefig(combined_savename,bbox_inches='tight')
     plt.close('all')
 
