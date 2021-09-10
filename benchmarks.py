@@ -151,6 +151,27 @@ def run_density_sweep(subnet_sizes=((2,1,1),(2,2,1),(2,2,2),(3,1,1),(3,2,1),(3,2
         combined_plot_fig.savefig(combined_savename,bbox_inches='tight')
         plt.close('all')
 
+def plot_combined_with_different_sampling_ps():
+    subnet_sizes = ((2,1,1),(2,2,1),(2,2,2),(3,1,1),(3,2,1),(3,2,2),(3,3,2))
+    combined_plot_fig,combined_plot_ax = plt.subplots()
+    for er_params,total_p in [(((10,10,10),0.1),0.01),(((10,10,10),0.5),0.0001)]:
+        alliters = []
+        for ii in range(10):
+            alliters.append(run_benchmark(subnet_sizes=subnet_sizes,er_params=er_params,total_p=total_p,iter_label=str(ii),return_result=True))
+        if er_params[1] == 0.1:
+            linestyle = 'dashed'
+        if er_params[1] == 0.5:
+            linestyle = 'solid'
+        plot_running_times(alliters,savename='should_not_exist',y_log=True,legend=False,plot_to_ax=combined_plot_ax,linestyle=linestyle)
+    combined_plot_ax.set_ylabel('Running time')
+    combined_plot_ax.set_xlabel('Subgraph size')
+    combined_plot_fig.tight_layout(pad=0.1)
+    custom_legend_lines = [Line2D([0],[0],color='#1f77b4'), Line2D([0],[0],color='#ff7f0e'),Line2D([0],[0],color='black',linestyle='dashed'),Line2D([0],[0],color='black',linestyle='solid')]
+    combined_plot_ax.legend(custom_legend_lines,['MESU','AESU',r'density = 0.1, $p_{tot}$ = 0.01',r'density = 0.5, $p_{tot}$ = 0.0001'])
+    combined_savename = str(subnet_sizes).replace(' ','')+'_'+str(((10,10,10),(0.1,0.5))).replace(' ','')+'_'+str((0.01,0.0001))+'_combined.pdf'
+    combined_plot_fig.savefig(combined_savename,bbox_inches='tight')
+    plt.close('all')
+
 def run_sampling_prob_sweep(subnet_sizes=((2,1,1),(2,2,1),(2,2,2),(3,1,1),(3,2,1),(3,2,2)),p_er=0.1,total_p=[0.02,0.04,0.06,0.08,0.10]):
     all_result_times = dict()
     for sampling_p in total_p:
