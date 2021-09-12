@@ -250,6 +250,53 @@ def plot_heatmap_from_iters(resultgrid,x_axis,y_axis,subnet_size,xlabel,ylabel,t
     else:
         plt.show()
 
+##### Protein-protein interaction nets
+
+@helpers.persistent
+def compare_running_times_data(fname,subnet_sizes=[(3,3)],total_p=0.0001):
+    M = helpers.load_edgelist(fname)
+    net_statistics = (len(list(M.iter_node_layers())),len(list(M.edges)),len(list(M.iter_nodes())),len(list(M.iter_layers())))
+    results = dict()
+    for subnet_size in subnet_sizes:
+        if total_p is None:
+            p = None
+        else:
+            p_depth = sum(s_i-1 for s_i in subnet_size) + 1
+            p = [total_p**(1.0/p_depth)] * p_depth
+        resultset_mesu = set()
+        resultset_esu = set()
+        mesu_start = time.time()
+        mesu.mesu(M,subnet_size,lambda S:resultset_mesu.add(tuple(frozenset(e) for e in S)),p=p)
+        mesu_end = time.time()
+        esu_start = time.time()
+        mesu.augmented_esu(M,subnet_size,lambda S:resultset_esu.add(tuple(frozenset(e) for e in S)),p=p)
+        esu_end = time.time()
+        if total_p is None:
+            assert resultset_mesu == resultset_esu
+        results[subnet_size] = (mesu_end-mesu_start,esu_end-esu_start,len(resultset_mesu),len(resultset_esu))
+    return (results,net_statistics)
+
+def run_times_for_example_data():
+    subnet_sizes = [(3,3)]
+    result_times = []
+    net_statistics = []
+    data = [('multiplex_pp_data/Arabidopsis_Multiplex_Genetic/Dataset/arabidopsis_genetic_multiplex.edges',0.0001,'arabidopsis'),
+            ('multiplex_pp_data/Bos_Multiplex_Genetic/Dataset/bos_genetic_multiplex.edges',0.0001,'bos'),
+            ('multiplex_pp_data/Candida_Multiplex_Genetic/Dataset/candida_genetic_multiplex.edges',0.0001,'candida'),
+            ('multiplex_pp_data/Celegans_Multiplex_Genetic/Dataset/celegans_genetic_multiplex.edges',0.0001,'celegans'),
+            ('multiplex_pp_data/Drosophila_Multiplex_Genetic/Dataset/drosophila_genetic_multiplex.edges',0.0001,'drosophila'),
+            ('multiplex_pp_data/Gallus_Multiplex_Genetic/Dataset/gallus_genetic_multiplex.edges',0.0001,'gallus'),
+            ('multiplex_pp_data/Mus_Multiplex_Genetic/Dataset/mus_genetic_multiplex.edges',0.0001,'mus'),
+            ('multiplex_pp_data/Plasmodium_Multiplex_Genetic//Dataset/plasmodium_genetic_multiplex.edges',0.0001,'plasmodium'),
+            ('multiplex_pp_data/Rattus_Multiplex_Genetic/Dataset/rattus_genetic_multiplex.edges',0.0001,'rattus'),
+            ('multiplex_pp_data/SacchCere_Multiplex_Genetic/Dataset/sacchcere_genetic_multiplex.edges',0.0001,'sacchcere'),
+            ('multiplex_pp_data/SacchPomb_Multiplex_Genetic/Dataset/sacchpomb_genetic_multiplex.edges',0.0001,'sacchpomb')]
+    for d in data:
+        result_tot = compare_running_times_data(fname=d[0],subnet_sizes=subnet_sizes,total_p=d[1],persistent_file='data_'+d[2]+'.pickle')
+        result_times.append(result_tot[0])
+        net_statistics.append(result_tot[1])
+
+
 
 
 
