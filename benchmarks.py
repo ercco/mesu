@@ -277,30 +277,38 @@ def compare_running_times_data(fname,subnet_sizes=[(3,3)],total_p=0.0001):
     return (results,net_statistics)
 
 def run_times_for_example_data():
-    subnet_sizes = [(3,3)]
+    subnet_sizes = [(4,3)]
+    base_p = 0.00001
     result_times = []
     net_statistics = []
     savename = 'data_'+str(subnet_sizes).replace(' ','')+'_scatter.pdf'
-    data = [('multiplex_pp_data/Arabidopsis_Multiplex_Genetic/Dataset/arabidopsis_genetic_multiplex.edges',0.0001,'arabidopsis'),
-            ('multiplex_pp_data/Bos_Multiplex_Genetic/Dataset/bos_genetic_multiplex.edges',0.0001,'bos'),
-            ('multiplex_pp_data/Candida_Multiplex_Genetic/Dataset/candida_genetic_multiplex.edges',0.0001,'candida'),
-            ('multiplex_pp_data/Celegans_Multiplex_Genetic/Dataset/celegans_genetic_multiplex.edges',0.0001,'celegans'),
-            ('multiplex_pp_data/Drosophila_Multiplex_Genetic/Dataset/drosophila_genetic_multiplex.edges',0.0001,'drosophila'),
-            ('multiplex_pp_data/Gallus_Multiplex_Genetic/Dataset/gallus_genetic_multiplex.edges',0.0001,'gallus'),
-            ('multiplex_pp_data/Mus_Multiplex_Genetic/Dataset/mus_genetic_multiplex.edges',0.0001,'mus'),
-            ('multiplex_pp_data/Plasmodium_Multiplex_Genetic//Dataset/plasmodium_genetic_multiplex.edges',0.0001,'plasmodium'),
-            ('multiplex_pp_data/Rattus_Multiplex_Genetic/Dataset/rattus_genetic_multiplex.edges',0.0001,'rattus'),
-            ('multiplex_pp_data/SacchCere_Multiplex_Genetic/Dataset/sacchcere_genetic_multiplex.edges',0.00001,'sacchcere'),
-            ('multiplex_pp_data/SacchPomb_Multiplex_Genetic/Dataset/sacchpomb_genetic_multiplex.edges',0.0001,'sacchpomb')]
+    data = [('multiplex_pp_data/Arabidopsis_Multiplex_Genetic/Dataset/arabidopsis_genetic_multiplex.edges',base_p,'arabidopsis'),
+            ('multiplex_pp_data/Bos_Multiplex_Genetic/Dataset/bos_genetic_multiplex.edges',base_p,'bos'),
+            ('multiplex_pp_data/Candida_Multiplex_Genetic/Dataset/candida_genetic_multiplex.edges',base_p,'candida'),
+            ('multiplex_pp_data/Celegans_Multiplex_Genetic/Dataset/celegans_genetic_multiplex.edges',base_p,'celegans'),
+            ('multiplex_pp_data/Drosophila_Multiplex_Genetic/Dataset/drosophila_genetic_multiplex.edges',base_p,'drosophila'),
+            ('multiplex_pp_data/Gallus_Multiplex_Genetic/Dataset/gallus_genetic_multiplex.edges',base_p,'gallus'),
+            ('multiplex_pp_data/Mus_Multiplex_Genetic/Dataset/mus_genetic_multiplex.edges',base_p,'mus'),
+            ('multiplex_pp_data/Plasmodium_Multiplex_Genetic//Dataset/plasmodium_genetic_multiplex.edges',base_p,'plasmodium'),
+            ('multiplex_pp_data/Rattus_Multiplex_Genetic/Dataset/rattus_genetic_multiplex.edges',base_p,'rattus')]
+#            ('multiplex_pp_data/SacchCere_Multiplex_Genetic/Dataset/sacchcere_genetic_multiplex.edges',0.0001,'sacchcere'),
+#            ('multiplex_pp_data/SacchPomb_Multiplex_Genetic/Dataset/sacchpomb_genetic_multiplex.edges',0.0001,'sacchpomb')]
     for d in data:
-        result_tot = compare_running_times_data(fname=d[0],subnet_sizes=subnet_sizes,total_p=d[1],persistent_file='data_'+d[2]+'.pickle')
+        result_tot = compare_running_times_data(fname=d[0],subnet_sizes=subnet_sizes,total_p=d[1],persistent_file='data_'+d[2]+'_'+str(subnet_sizes[0]).replace(' ','')+'.pickle')
         result_times.append(result_tot[0])
         net_statistics.append(result_tot[1])
+        print(d[2])
+        print('layers: '+str(result_tot[1][3]))
+        print('nodes: '+str(result_tot[1][2]))
+        print('nodelayers: '+str(result_tot[1][0]))
     x = [stat[0] for stat in net_statistics]
     y = [stat[1] for stat in net_statistics]
-    color = [time[0]/time[1] for time in result_times]
-    sc = plt.scatter(x,y,s=3,c=color,norm=colors.TwoSlopeNorm(vcenter=1.0),cmap='PuOr')
-    plt.colorbar(sc)
+    color = [time[subnet_sizes[0]][0]/time[subnet_sizes[0]][1] for time in result_times]
+    sc = plt.scatter(x,y,s=400,c=color,norm=colors.TwoSlopeNorm(vcenter=1.0),cmap='BrBG_r',edgecolors='black')
+    plt.gca().set_yscale('log')
+    plt.gca().set_xscale('log')
+    cb = plt.colorbar(sc)
+    cb.ax.set_ylabel(r'$T_{A-MESU}/T_{NL-MESU}$', rotation=-90, va="bottom")
     plt.xlabel('Number of nodelayers')
     plt.ylabel('Number of edges')
     plt.tight_layout(pad=0.1)
@@ -308,6 +316,7 @@ def run_times_for_example_data():
         plt.savefig(savename,bbox_inches='tight')
     else:
         plt.show()
+    plt.close('all')
 
 
 
