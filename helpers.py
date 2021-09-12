@@ -50,6 +50,15 @@ def er_multilayer_any_aspects_deg_1_or_greater(l=[5,5,5],p=0.05):
                 M[possible_nls[ii]][possible_nls[jj]] = 1
     return M
 
+def load_edgelist(fname):
+    M = pn.MultiplexNetwork(couplings='categorical',directed=False,fullyInterconnected=False)
+    with open(fname,'r') as f:
+        for line in f:
+            layer,node1,node2,weight = line.split()
+            if node1 != node2:
+                M[node1,layer][node2,layer] = 1
+    return M
+
 def heatmap(data, row_labels, col_labels, xlabel, ylabel, title='', ax=None,
             cbar_kw={}, cbarlabel="", **kwargs):
     """
