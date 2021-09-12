@@ -165,10 +165,10 @@ def plot_combined_with_different_sampling_ps():
             linestyle = 'solid'
         plot_running_times(alliters,savename='should_not_exist',y_log=True,legend=False,plot_to_ax=combined_plot_ax,linestyle=linestyle,show_numbers=False)
     combined_plot_ax.set_ylabel('Running time')
-    combined_plot_ax.set_xlabel('Subgraph size')
+    combined_plot_ax.set_xlabel('Subnetwork size')
     combined_plot_fig.tight_layout(pad=0.1)
     custom_legend_lines = [Line2D([0],[0],color='#1f77b4'), Line2D([0],[0],color='#ff7f0e'),Line2D([0],[0],color='black',linestyle='dashed'),Line2D([0],[0],color='black',linestyle='solid')]
-    combined_plot_ax.legend(custom_legend_lines,['MESU','AESU',r'density = 0.1, $p_{tot}$ = 0.01',r'density = 0.5, $p_{tot}$ = 0.0001'])
+    combined_plot_ax.legend(custom_legend_lines,['A-MESU','NL-MESU',r'density = 0.1, $p_{tot}$ = 0.01',r'density = 0.5, $p_{tot}$ = 0.0001'])
     combined_savename = str(subnet_sizes).replace(' ','')+'_'+str(((10,10,10),(0.1,0.5))).replace(' ','')+'_'+str((0.01,0.0001))+'_nonumbers_combined.pdf'
     combined_plot_fig.savefig(combined_savename,bbox_inches='tight')
     plt.close('all')
@@ -196,7 +196,7 @@ def run_heatmap_sweep(subnet_size,total_p_10):
 
 def run_heatmap_sweep_density_and_sampling_prob(subnet_size):
     densities = [0.1,0.15,0.2,0.25,0.3]
-    sampling_probs = [0.1,0.3,0.5,0.7,0.9]
+    sampling_probs = [0.001,0.004,0.007,0.01]
     resultgrid = []
     for d in densities:
         x_direction_list = []
@@ -206,8 +206,10 @@ def run_heatmap_sweep_density_and_sampling_prob(subnet_size):
                 iterlist.append(run_benchmark(subnet_sizes=(subnet_size,),er_params=((10,10,10),d),total_p=sampling_p,iter_label=str(iter_label),return_result=True))
             x_direction_list.append(iterlist)
         resultgrid.append(x_direction_list)
-    savename = str(subnet_size).replace(' ','')+'_'+str(((10,10,10),densities)).replace(' ','')+'_'+str(sampling_probs).replace(' ','')+'_heatmap.pdf'
-    plot_heatmap_from_iters(resultgrid,sampling_probs,densities,subnet_size,xlabel='Sampling p',ylabel='Density',title=str(subnet_size)+', net: '+str((10,10,10)),savename=savename,center=1)
+    savename = 'heatmap.pdf'
+    plot_heatmap_from_iters(resultgrid,sampling_probs,densities,subnet_size,xlabel='Sampling p',ylabel='Density',title='',savename=savename,center=1)
+    #savename = str(subnet_size).replace(' ','')+'_'+str(((10,10,10),densities)).replace(' ','')+'_'+str(sampling_probs).replace(' ','')+'_heatmap.pdf'
+    #plot_heatmap_from_iters(resultgrid,sampling_probs,densities,subnet_size,xlabel='Sampling p',ylabel='Density',title=str(subnet_size)+', net: '+str((10,10,10)),savename=savename,center=1)
 
 def run_heatmap_sweep_density_and_net_size(subnet_size):
     densities = [0.1,0.15,0.2,0.25,0.3]
@@ -241,7 +243,7 @@ def plot_heatmap_from_iters(resultgrid,x_axis,y_axis,subnet_size,xlabel,ylabel,t
             heat_x_direction_list.append(np.mean(mesu_iters[0])/np.mean(esu_iters[0]))
         heatvaluegrid.append(heat_x_direction_list)
     fig,ax = plt.subplots()
-    helpers.heatmap(np.array(heatvaluegrid),[str(y) for y in y_axis],[str(x) for x in x_axis],xlabel=xlabel,ylabel=ylabel,title=title,ax=ax,cbarlabel='T(mesu)/T(aesu)',norm=colors.TwoSlopeNorm(vcenter=center),cmap='PuOr')
+    helpers.heatmap(np.array(heatvaluegrid),[str(y) for y in y_axis],[str(x) for x in x_axis],xlabel=xlabel,ylabel=ylabel,title=title,ax=ax,cbarlabel='T(A-MESU)/T(NL-MESU)',norm=colors.TwoSlopeNorm(vcenter=center),cmap='PuOr')
     fig.tight_layout(pad=0.1)
     if savename:
         fig.savefig(savename,bbox_inches='tight')
