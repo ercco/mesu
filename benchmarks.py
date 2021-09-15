@@ -290,9 +290,9 @@ def run_times_for_example_data():
             ('multiplex_pp_data/Gallus_Multiplex_Genetic/Dataset/gallus_genetic_multiplex.edges',base_p,'gallus'),
             ('multiplex_pp_data/Mus_Multiplex_Genetic/Dataset/mus_genetic_multiplex.edges',base_p,'mus'),
             ('multiplex_pp_data/Plasmodium_Multiplex_Genetic//Dataset/plasmodium_genetic_multiplex.edges',base_p,'plasmodium'),
-            ('multiplex_pp_data/Rattus_Multiplex_Genetic/Dataset/rattus_genetic_multiplex.edges',base_p,'rattus')]
-#            ('multiplex_pp_data/SacchCere_Multiplex_Genetic/Dataset/sacchcere_genetic_multiplex.edges',0.0001,'sacchcere'),
-#            ('multiplex_pp_data/SacchPomb_Multiplex_Genetic/Dataset/sacchpomb_genetic_multiplex.edges',0.0001,'sacchpomb')]
+            ('multiplex_pp_data/Rattus_Multiplex_Genetic/Dataset/rattus_genetic_multiplex.edges',base_p,'rattus'),
+            ('multiplex_pp_data/SacchCere_Multiplex_Genetic/Dataset/sacchcere_genetic_multiplex.edges',base_p,'sacchcere'),
+            ('multiplex_pp_data/SacchPomb_Multiplex_Genetic/Dataset/sacchpomb_genetic_multiplex.edges',base_p,'sacchpomb')]
     for d in data:
         result_tot = compare_running_times_data(fname=d[0],subnet_sizes=subnet_sizes,total_p=d[1],persistent_file='data_'+d[2]+'_'+str(subnet_sizes[0]).replace(' ','')+'.pickle')
         result_times.append(result_tot[0])
