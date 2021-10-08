@@ -57,6 +57,27 @@ class MLnet {
      Vertex get_id_from_nl(NL nl) const {return nls.at(nl);}
      Vertex get_id_from_nl(std::array<int,N_ASPECTS+1> elem_layers) const {NL nl (elem_layers);return nls.at(nl);}
      NL get_nl_from_id(Vertex vertex) const {return reverse_nls.at(vertex);}
+     std::pair<std::vector<NL>,std::vector<Vertex>> get_all_nls() const {
+        std::vector<NL> nodelayers;
+        nodelayers.reserve(nls.size());
+        std::vector<Vertex> vertices;
+        vertices.reserve(nls.size());
+        for(auto kv : nls) {
+            nodelayers.push_back(kv.first);
+            vertices.push_back(kv.second);
+        }
+        std::pair<std::vector<NL>,std::vector<Vertex>> combined;
+        combined = std::make_pair(nodelayers,vertices);
+        return combined;
+     }
+     void print_all_nls() const {
+        std::pair<std::vector<NL>,std::vector<Vertex>> combined = get_all_nls();
+        for (int i=0; i<combined.first.size(); i++) {
+            combined.first[i].print();
+            std::cout << ", id: " << combined.second[i];
+            std::cout << "\n";
+        }
+     }
 };
 
 int main() {
@@ -83,6 +104,7 @@ int main() {
     std::cout << "{2,3,4}: " << y << "\n";
     //Vertex z = mlnet.get_id_from_nl({3,4,5});
     //std::cout << "{3,4,5}: " << z << "\n";
+    mlnet.print_all_nls();
 }
 
 
