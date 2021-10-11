@@ -78,6 +78,17 @@ class MLnet {
             std::cout << "\n";
         }
      }
+     // has to be not named add_edge, because scope resolution happens before overload resolution?
+     void add_mledge(NL nl1, NL nl2) {
+        Vertex vert1 = get_id_from_nl(nl1);
+        Vertex vert2 = get_id_from_nl(nl2);
+        add_edge(vert1,vert2,m);
+     }
+     void add_mledge(std::array<int,N_ASPECTS+1> elem_layers1, std::array<int,N_ASPECTS+1> elem_layers2) {
+        NL nl1 (elem_layers1);
+        NL nl2 (elem_layers2);
+        add_mledge(nl1,nl2);
+     }
 };
 
 int main() {
@@ -105,6 +116,7 @@ int main() {
     //Vertex z = mlnet.get_id_from_nl({3,4,5});
     //std::cout << "{3,4,5}: " << z << "\n";
     mlnet.print_all_nls();
+    mlnet.add_mledge({2,3,4},{5,6,7});
 }
 
 
