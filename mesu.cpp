@@ -40,6 +40,7 @@ using Graph = adjacency_list<vecS, vecS, undirectedS>;
 using Vertex =  graph_traits<Graph>::vertex_descriptor;
 using VertexIterator = graph_traits<Graph>::vertex_iterator;
 using EdgeIterator = graph_traits<Graph>::edge_iterator;
+using AdjacencyIterator = graph_traits<Graph>::adjacency_iterator;
 
 class MLnet {
     Graph m;
@@ -104,6 +105,25 @@ class MLnet {
             std::cout << " ids: " << src << ", " << trg << "\n";
         }
      }
+     std::vector<NL> get_neighbors(NL nl) const {
+        Vertex id = get_id_from_nl(nl);
+        std::vector<NL> neighbors;
+        neighbors.reserve(degree(id,m));
+        std::pair<AdjacencyIterator,AdjacencyIterator> adj = adjacent_vertices(id,m);
+        for (Vertex neighbor : make_iterator_range(adj)) {
+            neighbors.push_back(get_nl_from_id(neighbor));
+        }
+        return neighbors;
+     }
+     std::vector<NL> get_neighbors(std::array<int,N_ASPECTS+1> elem_layers) const {NL nl (elem_layers); return get_neighbors(nl);}
+     void print_neighbors(NL nl) const {
+        std::vector<NL> neighbors = get_neighbors(nl);
+        for (NL neighbor : neighbors) {neighbor.print(); if (!(neighbor == neighbors.back())) std::cout << ", ";}
+     }
+     void print_neighbors(std::array<int,N_ASPECTS+1> elem_layers) const {
+        NL nl (elem_layers);
+        print_neighbors(nl);
+     }
 };
 
 int main() {
@@ -132,7 +152,17 @@ int main() {
     //std::cout << "{3,4,5}: " << z << "\n";
     mlnet.print_all_nls();
     mlnet.add_mledge({2,3,4},{5,6,7});
+    std::cout << "Edges:" << "\n";
     mlnet.print_all_mledges();
+    std::cout << "Testing access to neighbors from curly bracket notation: ";
+    auto nn = mlnet.get_neighbors({2,3,4});
+    for (auto nx : nn) nx.print(); std::cout << "\n";
+    std::cout << "Neighbors of {2,3,4}: ";
+    mlnet.print_neighbors({2,3,4});
+    std::cout << "\n";
+    std::cout << "Neighbors of {5,6,7}: ";
+    mlnet.print_neighbors({5,6,7});
+    std::cout << "\n";
 }
 
 
