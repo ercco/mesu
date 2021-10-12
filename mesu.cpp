@@ -22,7 +22,7 @@ class NL {
      std::array<int,N_ASPECTS+1> get_el(void) const {return elem_layers;}
      // for testing shallow vs deep copy (i.e. is the array deepcopied)
      void set_el(std::array<int,N_ASPECTS+1> new_el) {elem_layers = new_el;}
-     void print(void) const {for (int i : elem_layers) std::cout << i;}
+     void print(void) const {std::cout << "{"; for (int i : elem_layers) {std::cout << i; if (i != elem_layers.back()) std::cout << ",";} std::cout << "}";}
      bool operator==(const NL& other) const {return elem_layers == other.elem_layers;}
      // are explicit copy and move constructors required for unordered_map?
 };
