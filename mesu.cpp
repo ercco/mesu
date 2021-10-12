@@ -38,6 +38,8 @@ namespace std {
 
 using Graph = adjacency_list<vecS, vecS, undirectedS>;
 using Vertex =  graph_traits<Graph>::vertex_descriptor;
+using VertexIterator = graph_traits<Graph>::vertex_iterator;
+using EdgeIterator = graph_traits<Graph>::edge_iterator;
 
 class MLnet {
     Graph m;
@@ -57,6 +59,7 @@ class MLnet {
      Vertex get_id_from_nl(NL nl) const {return nls.at(nl);}
      Vertex get_id_from_nl(std::array<int,N_ASPECTS+1> elem_layers) const {NL nl (elem_layers);return nls.at(nl);}
      NL get_nl_from_id(Vertex vertex) const {return reverse_nls.at(vertex);}
+     // iterate through unordered_map nls to find all nodelayers (i.e. not implemented from BGL Graph)
      std::pair<std::vector<NL>,std::vector<Vertex>> get_all_nls() const {
         std::vector<NL> nodelayers;
         nodelayers.reserve(nls.size());
@@ -89,6 +92,18 @@ class MLnet {
         NL nl2 (elem_layers2);
         add_mledge(nl1,nl2);
      }
+     std::pair<EdgeIterator,EdgeIterator> get_all_mledges() const {return edges(m);}
+     void print_all_mledges() const {
+        std::pair<EdgeIterator,EdgeIterator> edge_iter_pair = get_all_mledges();
+        for (EdgeIterator edge = edge_iter_pair.first; edge != edge_iter_pair.second; edge++) {
+            Vertex src = source(*edge,m);
+            Vertex trg = target(*edge,m);
+            NL src_nl = get_nl_from_id(src);
+            NL trg_nl = get_nl_from_id(trg);
+            std::cout << "("; src_nl.print(); std::cout << ", "; trg_nl.print(); std::cout << ")";
+            std::cout << " ids: " << src << ", " << trg << "\n";
+        }
+     }
 };
 
 int main() {
@@ -117,6 +132,7 @@ int main() {
     //std::cout << "{3,4,5}: " << z << "\n";
     mlnet.print_all_nls();
     mlnet.add_mledge({2,3,4},{5,6,7});
+    mlnet.print_all_mledges();
 }
 
 
