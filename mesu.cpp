@@ -41,6 +41,7 @@ using Vertex =  graph_traits<Graph>::vertex_descriptor;
 using VertexIterator = graph_traits<Graph>::vertex_iterator;
 using EdgeIterator = graph_traits<Graph>::edge_iterator;
 using AdjacencyIterator = graph_traits<Graph>::adjacency_iterator;
+using Degree = graph_traits<Graph>::degree_size_type;
 
 class MLnet {
     Graph m;
@@ -131,6 +132,17 @@ class MLnet {
         NL nl (elem_layers);
         print_neighbors(nl);
      }
+     Degree get_degree(NL nl) const {Vertex v = get_id_from_nl(nl); return degree(v,m);}
+     Degree get_degree(std::array<int,N_ASPECTS+1> elem_layers) const {Vertex v = get_id_from_nl(elem_layers); return degree(v,m);}
+     void print_all_degrees() const {
+        std::pair<std::vector<NL>,std::vector<Vertex>> combined = get_all_nls();
+        for (int i=0; i<combined.first.size(); i++) {
+            combined.first[i].print();
+            Degree deg = degree(combined.second[i],m);
+            std::cout << ", degree: " << deg;
+            std::cout << "\n";
+        }
+     }
 };
 
 int main() {
@@ -155,6 +167,10 @@ int main() {
     std::cout << "Neighbors of {5,6,7}: ";
     mlnet.print_neighbors({5,6,7});
     std::cout << "\n";
+    Degree d = mlnet.get_degree({2,3,4});
+    std::cout << "Degree of {2,3,4}: " << d << "\n";
+    std::cout << "All degrees:\n";
+    mlnet.print_all_degrees();
 }
 
 
