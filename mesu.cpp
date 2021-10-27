@@ -82,6 +82,13 @@ class MLnet {
             std::cout << "\n";
         }
      }
+     // get all nls using the Boost underlying graph; for testing purposes
+     void print_all_nls_from_underlying_graph() const {
+        std::pair<VertexIterator,VertexIterator> all_nl_ids = vertices(m);
+        for (Vertex nl_id : make_iterator_range(all_nl_ids)) {
+            std::cout << nl_id << "\n";
+        }
+     }
      // has to be not named add_edge, because scope resolution happens before overload resolution?
      void add_mledge(NL nl1, NL nl2) {
         Vertex vert1 = get_id_from_nl(nl1);
@@ -151,6 +158,8 @@ int main() {
     //Vertex z = mlnet.get_id_from_nl({3,4,5});
     //std::cout << "{3,4,5}: " << z << "\n";
     mlnet.print_all_nls();
+    std::cout << "Testing Boost vertices function to see that the nodelayers are actually there: \n";
+    mlnet.print_all_nls_from_underlying_graph();
     mlnet.add_mledge({2,3,4},{5,6,7});
     std::cout << "Edges:" << "\n";
     mlnet.print_all_mledges();
