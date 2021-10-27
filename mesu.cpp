@@ -135,35 +135,18 @@ class MLnet {
 
 int main() {
     MLnet mlnet;
-    std::array<int,N_ASPECTS+1> a1 = {1,2,3};
-    NL nl1 ({1,2,3});
-    NL nl2;
-    nl1.print();
-    std::cout << "\n";
-    nl2 = nl1;
-    nl1.set_el({5,6,7});
-    nl1.print();
-    std::cout << "\n";
-    nl2.print();
-    std::cout << "\n";
-    mlnet.add_nodelayer(nl1);
+    mlnet.add_nodelayer({5,6,7});
     mlnet.add_nodelayer({2,3,4});
-    //Vertex x = mlnet.get_id_from_nl({1,2,3});
-    //std::cout << "{1,2,3}: " << x << "\n";
-    // we edited nl1 in the above code
-    Vertex x = mlnet.get_id_from_nl({5,6,7});
-    std::cout << "{5,6,7}: " << x << "\n";
-    Vertex y = mlnet.get_id_from_nl({2,3,4});
-    std::cout << "{2,3,4}: " << y << "\n";
-    //Vertex z = mlnet.get_id_from_nl({3,4,5});
-    //std::cout << "{3,4,5}: " << z << "\n";
+    mlnet.add_nodelayer({1,2,3});
+    std::cout << "Nodelayers in net: \n";
     mlnet.print_all_nls();
     std::cout << "Testing Boost vertices function to see that the nodelayers are actually there: \n";
     mlnet.print_all_nls_from_underlying_graph();
     mlnet.add_mledge({2,3,4},{5,6,7});
+    mlnet.add_mledge({2,3,4},{1,2,3});
     std::cout << "Edges:" << "\n";
     mlnet.print_all_mledges();
-    std::cout << "Testing access to neighbors from curly bracket notation: ";
+    std::cout << "Testing access to neighbors of {2,3,4} from curly bracket notation: ";
     auto nn = mlnet.get_neighbors({2,3,4});
     for (auto nx : nn) nx.print(); std::cout << "\n";
     std::cout << "Neighbors of {2,3,4}: ";
