@@ -143,6 +143,29 @@ class MLnet {
             std::cout << "\n";
         }
      }
+     // subnet function: takes array of vectors of elementary layers as parameter
+     MLnet subnet(std::array<std::vector<int>,N_ASPECTS+1> subnet_elem_layers) const {
+        MLnet new_subnet;
+        // cartesian product of elementary layers in subnet_elem_layers to get all possible nodelayers
+        // we get total length and then do divisions and modulos to get the proper index to iterate over all product elements
+        int total_length = 1;
+        std::array<int,N_ASPECTS+1> divisors;
+        std::array<int,N_ASPECTS+1> modulos;
+        for (int ii=0; ii<N_ASPECTS+1; ii++) {
+            total_length = total_length * subnet_elem_layers[ii].size();
+            modulos[ii] = subnet_elem_layers[ii].size();
+            divisors[ii] = 1;
+            for (int jj=ii+1; jj<N_ASPECTS+1; jj++) {divisors[ii] = divisors[ii]*subnet_elem_layers[jj].size();}
+        }
+        for (int ii=0; ii<total_length; ii++) {
+            std::array<int,N_ASPECTS+1> current_nodelayer;
+            for (int jj=0; jj<N_ASPECTS+1; jj++) {current_nodelayer[jj] = subnet_elem_layers[jj][(ii/divisors[jj])%modulos[jj]];}
+            // finally we get the possible nodelayers in the subnet
+            NL curr_nl = NL(current_nodelayer);
+            curr_nl.print(); std::cout << "\n";
+        }
+        return new_subnet;
+     }
 };
 
 int main() {
@@ -171,6 +194,11 @@ int main() {
     std::cout << "Degree of {2,3,4}: " << d << "\n";
     std::cout << "All degrees:\n";
     mlnet.print_all_degrees();
+    std::array<std::vector<int>,N_ASPECTS+1> subnet_els;
+    subnet_els[0] = std::vector<int> {1,2,3};
+    subnet_els[1] = std::vector<int> {4,5};
+    subnet_els[2] = std::vector<int> {6,7,8,9};
+    mlnet.subnet(subnet_els);
 }
 
 
