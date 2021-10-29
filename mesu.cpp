@@ -36,7 +36,7 @@ namespace std {
     };
 }
 
-using Graph = adjacency_list<vecS, vecS, undirectedS>;
+using Graph = adjacency_list<setS, vecS, undirectedS>;
 using Vertex =  graph_traits<Graph>::vertex_descriptor;
 using VertexIterator = graph_traits<Graph>::vertex_iterator;
 using EdgeIterator = graph_traits<Graph>::edge_iterator;
@@ -49,6 +49,7 @@ class MLnet {
     std::unordered_map<NL,Vertex> nls;
     std::unordered_map<Vertex,NL> reverse_nls;
     public:
+     int count_nodelayer(NL nl) const {return nls.count(nl);}
      void add_nodelayer(NL nl) {
         Vertex vertex_descriptor = add_vertex(m);
         nls[nl] = vertex_descriptor;
@@ -163,8 +164,18 @@ class MLnet {
             for (int jj=0; jj<N_ASPECTS+1; jj++) {current_nodelayer[jj] = subnet_elem_layers[jj][(ii/divisors[jj])%modulos[jj]];}
             // finally we get the possible nodelayers in the subnet
             NL curr_nl = NL(current_nodelayer);
-            if (nls.count(curr_nl) > 0) {new_subnet.add_nodelayer(curr_nl);}
+            if (count_nodelayer(curr_nl) > 0) {new_subnet.add_nodelayer(curr_nl);}
             curr_nl.print(); std::cout << "\n";
+        }
+        // create edges
+        // iterating over all neighbors
+        // TODO: iterating over other nls if degree is high
+        std::pair<std::vector<NL>,std::vector<Vertex>> combined = new_subnet.get_all_nls();
+        for (int ii=0; ii<combined.first.size(); ii++) {
+            std::vector<NL> neighbors = get_neighbors(combined.first[ii]);
+            for (auto neigh : neighbors) {
+                if (new_subnet.count_nodelayer(neigh) > 0) {new_subnet.add_mledge(combined.first[ii],neigh);}
+            }
         }
         return new_subnet;
      }
@@ -203,6 +214,14 @@ int main() {
     MLnet sub = mlnet.subnet(subnet_els);
     std::cout << "Subnet nls:\n";
     sub.print_all_nls();
+    std::cout << "Subnet edges:\n";
+    sub.print_all_mledges();
+    std::cout << "Subnet neighbors of {2,3,4}: ";
+    sub.print_neighbors({2,3,4});
+    std::cout << "\n";
+    std::cout << "Subnet neighbors of {1,2,3}: ";
+    sub.print_neighbors({1,2,3});
+    std::cout << "\n";
 }
 
 
