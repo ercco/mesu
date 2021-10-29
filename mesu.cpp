@@ -144,6 +144,7 @@ class MLnet {
         }
      }
      // subnet function: takes array of vectors of elementary layers as parameter
+     // NB! Vertex IDs will probably not match original net (but nodelayers will)
      MLnet subnet(std::array<std::vector<int>,N_ASPECTS+1> subnet_elem_layers) const {
         MLnet new_subnet;
         // cartesian product of elementary layers in subnet_elem_layers to get all possible nodelayers
@@ -199,7 +200,9 @@ int main() {
     subnet_els[0] = std::vector<int> {1,2,3};
     subnet_els[1] = std::vector<int> {2,3};
     subnet_els[2] = std::vector<int> {3,4,5,6};
-    mlnet.subnet(subnet_els);
+    MLnet sub = mlnet.subnet(subnet_els);
+    std::cout << "Subnet nls:\n";
+    sub.print_all_nls();
 }
 
 
