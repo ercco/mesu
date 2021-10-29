@@ -22,7 +22,7 @@ class NL {
      std::array<int,N_ASPECTS+1> get_el(void) const {return elem_layers;}
      // for testing shallow vs deep copy (i.e. is the array deepcopied)
      void set_el(std::array<int,N_ASPECTS+1> new_el) {elem_layers = new_el;}
-     void print(void) const {std::cout << "{"; for (int i : elem_layers) {std::cout << i; if (i != elem_layers.back()) std::cout << ",";} std::cout << "}";}
+     void print(void) const {std::cout << "{"; for (int ii=0; ii<elem_layers.size(); ii++) {std::cout << elem_layers[ii]; if (ii != elem_layers.size()-1) std::cout << ",";} std::cout << "}";}
      bool operator==(const NL& other) const {return elem_layers == other.elem_layers;}
      // are explicit copy and move constructors required for unordered_map?
 };
@@ -162,6 +162,7 @@ class MLnet {
             for (int jj=0; jj<N_ASPECTS+1; jj++) {current_nodelayer[jj] = subnet_elem_layers[jj][(ii/divisors[jj])%modulos[jj]];}
             // finally we get the possible nodelayers in the subnet
             NL curr_nl = NL(current_nodelayer);
+            if (nls.count(curr_nl) > 0) {new_subnet.add_nodelayer(curr_nl);}
             curr_nl.print(); std::cout << "\n";
         }
         return new_subnet;
@@ -196,8 +197,8 @@ int main() {
     mlnet.print_all_degrees();
     std::array<std::vector<int>,N_ASPECTS+1> subnet_els;
     subnet_els[0] = std::vector<int> {1,2,3};
-    subnet_els[1] = std::vector<int> {4,5};
-    subnet_els[2] = std::vector<int> {6,7,8,9};
+    subnet_els[1] = std::vector<int> {2,3};
+    subnet_els[2] = std::vector<int> {3,4,5,6};
     mlnet.subnet(subnet_els);
 }
 
