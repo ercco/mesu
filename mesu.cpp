@@ -235,6 +235,7 @@ int main() {
     std::cout << "Add isolated nl to mlnet:\n";
     mlnet.add_nodelayer({3,2,1});
     if (mlnet.is_connected()) {std::cout << "mlnet is connected\n";} else {std::cout << "mlnet is not connected\n";}
+    if (sub.is_connected()) {std::cout << "subnet is connected\n";} else {std::cout << "subnet is not connected\n";}
 }
 
 
