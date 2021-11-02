@@ -9,6 +9,7 @@
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <boost/graph/connected_components.hpp>
 #define N_ASPECTS 2
 
 using namespace boost;
@@ -179,6 +180,12 @@ class MLnet {
         }
         return new_subnet;
      }
+     bool is_connected() const {
+        std::vector<int> component(num_vertices(m));
+        int number_of_components = connected_components(m, &component[0]);
+        if (number_of_components == 1) {return true;}
+        else {return false;}
+     }
 };
 
 int main() {
@@ -222,6 +229,12 @@ int main() {
     std::cout << "Subnet neighbors of {1,2,3}: ";
     sub.print_neighbors({1,2,3});
     std::cout << "\n";
+    std::cout << "Connectedness:\n";
+    if (mlnet.is_connected()) {std::cout << "mlnet is connected\n";} else {std::cout << "mlnet is not connected\n";}
+    if (sub.is_connected()) {std::cout << "subnet is connected\n";} else {std::cout << "subnet is not connected\n";}
+    std::cout << "Add isolated nl to mlnet:\n";
+    mlnet.add_nodelayer({3,2,1});
+    if (mlnet.is_connected()) {std::cout << "mlnet is connected\n";} else {std::cout << "mlnet is not connected\n";}
 }
 
 
