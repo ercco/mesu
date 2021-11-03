@@ -188,6 +188,27 @@ class MLnet {
      }
 };
 
+int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
+    int total_number = 0;
+    std::pair<std::vector<NL>,std::vector<Vertex>> combined = mlnet.get_all_nls();
+    for (int ii=0; ii<combined.first.size(); ii++) {
+        Vertex gamma_index = mlnet.get_id_from_nl(combined.first[ii]);
+        std::unordered_set<NL> extension;
+        std::vector<NL> neighbors = mlnet.get_neighbors(combined.first[ii]);
+        for (NL neigh : neighbors) {
+            if (mlnet.get_id_from_nl(neigh) > gamma_index) {
+                extension.insert(neigh);
+            }
+        }
+        std::cout << "nl: ";
+        combined.first[ii].print();
+        std::cout << " ext: ";
+        for (auto e = extension.begin(); e != extension.end(); e++) {(*e).print();}
+        std::cout << "\n";
+    }
+    return total_number;
+}
+
 int main() {
     MLnet mlnet;
     mlnet.add_nodelayer({5,6,7});
@@ -236,6 +257,8 @@ int main() {
     mlnet.add_nodelayer({3,2,1});
     if (mlnet.is_connected()) {std::cout << "mlnet is connected\n";} else {std::cout << "mlnet is not connected\n";}
     if (sub.is_connected()) {std::cout << "subnet is connected\n";} else {std::cout << "subnet is not connected\n";}
+    std::cout << "Testing nl-mesu:\n";
+    nl_mesu(mlnet,{2,2,2});
 }
 
 
