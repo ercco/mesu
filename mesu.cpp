@@ -211,7 +211,7 @@ int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
     return total_number;
 }
 
-std::array<int,N_ASPECTS+1> spanned_volume(std::unordered_set<NL> VM) {
+std::array<int,N_ASPECTS+1> spanned_volume(const std::unordered_set<NL>& VM) {
     std::array<std::unordered_set<int>,N_ASPECTS+1> spanned_space;
     for (auto vm_iter = VM.begin(); vm_iter != VM.end(); vm_iter++) {
         std::array<int,N_ASPECTS+1> elem_layers = (*vm_iter).get_el();
@@ -243,6 +243,7 @@ void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, 
         // TODO: checking function
         total_number++;
     }
+    std::unordered_set<NL> N = VM_neighbors(mlnet,VM_subnet);
 }
 
 int main() {
