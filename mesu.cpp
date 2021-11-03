@@ -211,10 +211,6 @@ int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
     return total_number;
 }
 
-void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::unordered_set<NL>& VM_subnet, std::unordered_set<NL>& extension, Vertex& gamma_index, int& total_number) {
-    
-}
-
 std::array<int,N_ASPECTS+1> spanned_volume(std::unordered_set<NL> VM) {
     std::array<std::unordered_set<int>,N_ASPECTS+1> spanned_space;
     for (auto vm_iter = VM.begin(); vm_iter != VM.end(); vm_iter++) {
@@ -228,6 +224,25 @@ std::array<int,N_ASPECTS+1> spanned_volume(std::unordered_set<NL> VM) {
         volume[jj] = spanned_space[jj].size();
     }
     return volume;
+}
+
+std::unordered_set<NL> VM_neighbors(const MLnet& mlnet, const std::unordered_set<NL>& VM) {
+    std::unordered_set<NL> all_neighs;
+    for (auto vm_iter = VM.begin(); vm_iter != VM.end(); vm_iter++) {
+        std::vector<NL> curr_neighs = mlnet.get_neighbors(*vm_iter);
+        for (NL neighbor : curr_neighs) {
+            if (VM.count(neighbor) < 1) {all_neighs.insert(neighbor);}
+        }
+    }
+    return all_neighs;
+}
+
+void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::unordered_set<NL>& VM_subnet, std::unordered_set<NL>& extension, Vertex& gamma_index, int& total_number) {
+    std::array<int,N_ASPECTS+1> volume = spanned_volume(VM_subnet);
+    if (volume == size) {
+        // TODO: checking function
+        total_number++;
+    }
 }
 
 int main() {
