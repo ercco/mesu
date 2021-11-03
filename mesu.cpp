@@ -194,6 +194,8 @@ int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
     for (int ii=0; ii<combined.first.size(); ii++) {
         Vertex gamma_index = mlnet.get_id_from_nl(combined.first[ii]);
         std::unordered_set<NL> extension;
+        std::unordered_set<NL> VM_subnet;
+        VM_subnet.insert(combined.first[ii]);
         std::vector<NL> neighbors = mlnet.get_neighbors(combined.first[ii]);
         for (NL neigh : neighbors) {
             if (mlnet.get_id_from_nl(neigh) > gamma_index) {
@@ -207,6 +209,25 @@ int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
         std::cout << "\n";
     }
     return total_number;
+}
+
+void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::unordered_set<NL>& VM_subnet, std::unordered_set<NL>& extension, Vertex& gamma_index, int& total_number) {
+    
+}
+
+std::array<int,N_ASPECTS+1> spanned_volume(std::unordered_set<NL> VM) {
+    std::array<std::unordered_set<int>,N_ASPECTS+1> spanned_space;
+    for (auto vm_iter = VM.begin(); vm_iter != VM.end(); vm_iter++) {
+        std::array<int,N_ASPECTS+1> elem_layers = (*vm_iter).get_el();
+        for (int ii=0; ii<elem_layers.size(); ii++) {
+            spanned_space[ii].insert(elem_layers[ii]);
+        }
+    }
+    std::array<int,N_ASPECTS+1> volume;
+    for (int jj=0; jj<spanned_space.size(); jj++) {
+        volume[jj] = spanned_space[jj].size();
+    }
+    return volume;
 }
 
 int main() {
