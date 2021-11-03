@@ -244,6 +244,16 @@ void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, 
         total_number++;
     }
     std::unordered_set<NL> N = VM_neighbors(mlnet,VM_subnet);
+    while (not extension.empty()) {
+        // pop element; no in-built popping function available
+        NL gamma_prime = *extension.begin();
+        extension.erase(extension.begin());
+        // new VM_subnet
+        std::unordered_set<NL> VM_subnet_prime = VM_subnet;
+        VM_subnet_prime.insert(gamma_prime);
+        std::array<int,N_ASPECTS+1> subnet_prime_volume = spanned_volume(VM_subnet_prime);
+        // TODO: E9-> (check if any element in VM_subnet_prime is larger than in size)
+    }
 }
 
 int main() {
