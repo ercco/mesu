@@ -303,6 +303,8 @@ int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
     return total_number;
 }
 
+// main ----------------------------------------------------------------------------------------------------------------------
+
 int main() {
     MLnet mlnet;
     mlnet.add_nodelayer({5,6,7});
@@ -347,12 +349,16 @@ int main() {
     std::cout << "Connectedness:\n";
     if (mlnet.is_connected()) {std::cout << "mlnet is connected\n";} else {std::cout << "mlnet is not connected\n";}
     if (sub.is_connected()) {std::cout << "subnet is connected\n";} else {std::cout << "subnet is not connected\n";}
-    std::cout << "Add isolated nl to mlnet:\n";
+    std::cout << "Add isolated nl {3,2,1} to mlnet:\n";
     mlnet.add_nodelayer({3,2,1});
     if (mlnet.is_connected()) {std::cout << "mlnet is connected\n";} else {std::cout << "mlnet is not connected\n";}
     if (sub.is_connected()) {std::cout << "subnet is connected\n";} else {std::cout << "subnet is not connected\n";}
     std::cout << "Testing nl-mesu:\n";
     int number_of_subnets = nl_mesu(mlnet,{3,3,3});
+    std::cout << "Number of subnets: " << number_of_subnets << "\n";
+    std::cout << "Add edge {5,6,7},{3,2,1}\n";
+    mlnet.add_mledge({5,6,7},{3,2,1});
+    number_of_subnets = nl_mesu(mlnet,{3,3,3});
     std::cout << "Number of subnets: " << number_of_subnets << "\n";
 }
 
