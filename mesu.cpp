@@ -192,17 +192,22 @@ class MLnet {
 
 // NL-MESU
 
-std::array<int,N_ASPECTS+1> spanned_volume(const std::unordered_set<NL>& VM) {
-    std::array<std::unordered_set<int>,N_ASPECTS+1> spanned_space;
+std::array<std::unordered_set<int>,N_ASPECTS+1> spanned_space(const std::unordered_set<NL>& VM) {
+    std::array<std::unordered_set<int>,N_ASPECTS+1> space;
     for (auto vm_iter = VM.begin(); vm_iter != VM.end(); vm_iter++) {
         std::array<int,N_ASPECTS+1> elem_layers = (*vm_iter).get_el();
         for (int ii=0; ii<elem_layers.size(); ii++) {
-            spanned_space[ii].insert(elem_layers[ii]);
+            space[ii].insert(elem_layers[ii]);
         }
     }
+    return space;
+}
+
+std::array<int,N_ASPECTS+1> spanned_volume(const std::unordered_set<NL>& VM) {
+    std::array<std::unordered_set<int>,N_ASPECTS+1> space = spanned_space(VM);
     std::array<int,N_ASPECTS+1> volume;
-    for (int jj=0; jj<spanned_space.size(); jj++) {
-        volume[jj] = spanned_space[jj].size();
+    for (int jj=0; jj<space.size(); jj++) {
+        volume[jj] = space[jj].size();
     }
     return volume;
 }
