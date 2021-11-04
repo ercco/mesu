@@ -188,28 +188,9 @@ class MLnet {
      }
 };
 
-int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
-    int total_number = 0;
-    std::pair<std::vector<NL>,std::vector<Vertex>> combined = mlnet.get_all_nls();
-    for (int ii=0; ii<combined.first.size(); ii++) {
-        Vertex gamma_index = mlnet.get_id_from_nl(combined.first[ii]);
-        std::unordered_set<NL> extension;
-        std::unordered_set<NL> VM_subnet;
-        VM_subnet.insert(combined.first[ii]);
-        std::vector<NL> neighbors = mlnet.get_neighbors(combined.first[ii]);
-        for (NL neigh : neighbors) {
-            if (mlnet.get_id_from_nl(neigh) > gamma_index) {
-                extension.insert(neigh);
-            }
-        }
-        std::cout << "nl: ";
-        combined.first[ii].print();
-        std::cout << " ext: ";
-        for (auto e = extension.begin(); e != extension.end(); e++) {(*e).print();}
-        std::cout << "\n";
-    }
-    return total_number;
-}
+// algorithms ----------------------------------------------------------------------------------------------------------------
+
+// NL-MESU
 
 std::array<int,N_ASPECTS+1> spanned_volume(const std::unordered_set<NL>& VM) {
     std::array<std::unordered_set<int>,N_ASPECTS+1> spanned_space;
@@ -242,6 +223,7 @@ void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, 
     if (volume == size) {
         // TODO: checking function
         total_number++;
+        return;
     }
     std::unordered_set<NL> N = VM_neighbors(mlnet,VM_subnet);
     while (not extension.empty()) {
@@ -252,8 +234,42 @@ void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, 
         std::unordered_set<NL> VM_subnet_prime = VM_subnet;
         VM_subnet_prime.insert(gamma_prime);
         std::array<int,N_ASPECTS+1> subnet_prime_volume = spanned_volume(VM_subnet_prime);
-        // TODO: E9-> (check if any element in VM_subnet_prime is larger than in size)
+        // check if any aspect goes over the size limit; no easy solution so just use a dumb flag approach
+        bool oversize = false;
+        for (int ii=0; ii<size.size(); ii++) {if (subnet_prime_volume[ii]>size[ii]) {oversize=true;break;}}
+        if (oversize) {continue;}
+        std::unordered_set<NL> extension_prime = extension;
+        std::vector<NL> neighbors = mlnet.get_neighbors(gamma_prime);
+        for (NL neigh : neighbors) {
+            if (VM_subnet.count(neigh) < 1 and N.count(neigh) < 1 and mlnet.get_id_from_nl(neigh) > gamma_index) {extension_prime.insert(neigh);}
+        }
+        extend_nl_mesu(mlnet,size,VM_subnet_prime,extension_prime,gamma_index,total_number);
     }
+    return;
+}
+
+int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
+    int total_number = 0;
+    std::pair<std::vector<NL>,std::vector<Vertex>> combined = mlnet.get_all_nls();
+    for (int ii=0; ii<combined.first.size(); ii++) {
+        Vertex gamma_index = mlnet.get_id_from_nl(combined.first[ii]);
+        std::unordered_set<NL> extension;
+        std::unordered_set<NL> VM_subnet;
+        VM_subnet.insert(combined.first[ii]);
+        std::vector<NL> neighbors = mlnet.get_neighbors(combined.first[ii]);
+        for (NL neigh : neighbors) {
+            if (mlnet.get_id_from_nl(neigh) > gamma_index) {
+                extension.insert(neigh);
+            }
+        }
+        //std::cout << "nl: ";
+        //combined.first[ii].print();
+        //std::cout << " ext: ";
+        //for (auto e = extension.begin(); e != extension.end(); e++) {(*e).print();}
+        //std::cout << "\n";
+        extend_nl_mesu(mlnet,size,VM_subnet,extension,gamma_index,total_number);
+    }
+    return total_number;
 }
 
 int main() {
@@ -305,7 +321,8 @@ int main() {
     if (mlnet.is_connected()) {std::cout << "mlnet is connected\n";} else {std::cout << "mlnet is not connected\n";}
     if (sub.is_connected()) {std::cout << "subnet is connected\n";} else {std::cout << "subnet is not connected\n";}
     std::cout << "Testing nl-mesu:\n";
-    nl_mesu(mlnet,{2,2,2});
+    int number_of_subnets = nl_mesu(mlnet,{3,3,3});
+    std::cout << "Number of subnets: " << number_of_subnets << "\n";
 }
 
 
