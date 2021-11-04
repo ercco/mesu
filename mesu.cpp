@@ -223,11 +223,37 @@ std::unordered_set<NL> VM_neighbors(const MLnet& mlnet, const std::unordered_set
     return all_neighs;
 }
 
+bool valid_nl_mesu(const MLnet& mlnet, const std::unordered_set<NL>& VM_subnet, const std::unordered_set<NL>& extension, const Vertex& gamma_index) {
+    std::array<std::unordered_set<int>,N_ASPECTS+1> space = spanned_space(VM_subnet);
+    // change from set into vector so subnet index magic works
+    std::array<std::vector<int>,N_ASPECTS+1> subnet_elem_layers;
+    for (int ii=0; ii<N_ASPECTS+1; ii++) {
+        subnet_elem_layers[ii].reserve(space[ii].size());
+        for (auto it=space[ii].begin(); it!=space[ii].end(); ) {
+            subnet_elem_layers[ii].push_back(std::move(space[ii].extract(it++).value())); // does this invalidate the iterator?
+        }
+    }
+    MLnet sub = mlnet.subnet(subnet_elem_layers);
+    if (sub.is_connected()) {
+        bool all_indices_valid = true;
+        std::pair<std::vector<NL>,std::vector<Vertex>> all_nls = sub.get_all_nls();
+        for (Vertex nl_id : all_nls.second) {if (nl_id < gamma_index) {all_indices_valid = false;break;}}
+        if (all_indices_valid) {
+            std::unordered_set<NL> VM_neighs = VM_neighbors(sub,VM_subnet);
+            bool all_neighs_in_extension = true;
+            for (NL neigh : VM_neighs) {if (extension.count(neigh) < 1) {all_neighs_in_extension = false;break;}}
+            if (all_neighs_in_extension) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::unordered_set<NL>& VM_subnet, std::unordered_set<NL>& extension, Vertex& gamma_index, int& total_number) {
     std::array<int,N_ASPECTS+1> volume = spanned_volume(VM_subnet);
     if (volume == size) {
-        // TODO: checking function
-        total_number++;
+        if (valid_nl_mesu(mlnet,VM_subnet,extension,gamma_index)) {total_number++;}
         return;
     }
     std::unordered_set<NL> N = VM_neighbors(mlnet,VM_subnet);
