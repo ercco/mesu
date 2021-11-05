@@ -311,6 +311,61 @@ int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
     return total_number;
 }
 
+// A-MESU
+
+// cartesian product copied from subnet, casting into vector copied from valid_nl_mesu; maybe a better way to not duplicate code?
+std::unordered_set<NL> subnet_nodelayers(MLnet& mlnet, std::array<std::unordered_set<int>,N_ASPECTS+1>& S) {
+    std::unordered_set<NL> sub_nls;
+    int total_length = 1;
+    std::array<int,N_ASPECTS+1> divisors;
+    std::array<int,N_ASPECTS+1> modulos;
+    std::array<std::vector<int>,N_ASPECTS+1> subnet_elem_layers;
+    // ii and jj of subnet_elem_layers required, need to loop twice
+    for (int ii=0; ii<N_ASPECTS+1; ii++) {
+        subnet_elem_layers[ii].reserve(S[ii].size());
+        for (auto it=S[ii].begin(); it!=S[ii].end(); ) {
+            subnet_elem_layers[ii].push_back(std::move(S[ii].extract(it++).value())); // does this invalidate the iterator?
+        }
+    }
+    for (int jj=0; jj<N_ASPECTS+1; jj++) {
+        total_length = total_length * subnet_elem_layers[jj].size();
+        modulos[jj] = subnet_elem_layers[jj].size();
+        divisors[jj] = 1;
+        for (int kk=jj+1; kk<N_ASPECTS+1; kk++) {divisors[jj] = divisors[jj]*subnet_elem_layers[kk].size();}
+    }
+    for (int ll=0; ll<total_length; ll++) {
+        std::array<int,N_ASPECTS+1> current_nodelayer;
+        for (int mm=0; mm<N_ASPECTS+1; mm++) {current_nodelayer[mm] = subnet_elem_layers[mm][(ll/divisors[mm])%modulos[mm]];}
+        // finally we get the possible nodelayers in the subnet
+        NL curr_nl = NL(current_nodelayer);
+        if (mlnet.count_nodelayer(curr_nl) > 0) {sub_nls.insert(curr_nl);}
+    }
+    return sub_nls;
+}
+
+std::unordered_set<NL> subnet_diff(MLnet& mlnet, std::array<std::unordered_set<int>,N_ASPECTS+1>& S_prime, std::array<std::unordered_set<int>,N_ASPECTS+1>& S) {
+    std::unordered_set<NL> nodelayers_S_prime = subnet_nodelayers(mlnet,S_prime);
+    std::unordered_set<NL> nodelayers_S = subnet_nodelayers(mlnet,S);
+    // remove in-place from nodelayers_S_prime
+    for (NL nlS : nodelayers_S) {nodelayers_S_prime.erase(nlS);}
+    return nodelayers_S_prime;
+}
+
+int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
+    int total_number = 0;
+    std::pair<std::vector<NL>,std::vector<Vertex>> combined = mlnet.get_all_nls();
+    for (int ii=0; ii<combined.first.size(); ii++) {
+        Vertex gamma_index = mlnet.get_id_from_nl(combined.first[ii]);
+        std::array<std::unordered_set<int>,N_ASPECTS+1> S;
+        std::array<std::unordered_set<int>,N_ASPECTS+1> extension;
+        std::vector<NL> neighbors = mlnet.get_neighbors(combined.first[ii]);
+        for (NL neigh : neighbors) {
+            // TODO
+        }
+    }
+    return total_number;
+}
+
 // main ----------------------------------------------------------------------------------------------------------------------
 
 int main() {
