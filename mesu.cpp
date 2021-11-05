@@ -173,7 +173,7 @@ class MLnet {
             // finally we get the possible nodelayers in the subnet
             NL curr_nl = NL(current_nodelayer);
             if (count_nodelayer(curr_nl) > 0) {new_subnet.add_nodelayer(curr_nl);}
-            curr_nl.print(); std::cout << "\n";
+            //curr_nl.print(); std::cout << "\n";
         }
         // create edges
         // iterating over all neighbors
@@ -373,6 +373,9 @@ int main() {
     full.add_nodelayer({1,1,2});full.add_nodelayer({2,1,2});full.add_nodelayer({1,2,2});full.add_nodelayer({2,2,2});
     full.fill_mledges();
     full.print_all_mledges();
+    std::cout << "Check nl-mesu:\n";
+    number_of_subnets = nl_mesu(full,{2,2,2});
+    std::cout << "Number of subnets: " << number_of_subnets << "\n";
 }
 
 
