@@ -237,7 +237,7 @@ bool valid_nl_mesu(const MLnet& mlnet, const std::unordered_set<NL>& VM_subnet, 
     for (int ii=0; ii<N_ASPECTS+1; ii++) {
         subnet_elem_layers[ii].reserve(space[ii].size());
         for (auto it=space[ii].begin(); it!=space[ii].end(); ) {
-            subnet_elem_layers[ii].push_back(std::move(space[ii].extract(it++).value())); // does this invalidate the iterator?
+            subnet_elem_layers[ii].push_back(std::move(space[ii].extract(it++).value())); // this modifies space -> iterator invalid?
         }
     }
     MLnet sub = mlnet.subnet(subnet_elem_layers);
