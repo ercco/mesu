@@ -103,6 +103,13 @@ class MLnet {
         NL nl2 (elem_layers2);
         add_mledge(nl1,nl2);
      }
+     // fill with all possible edges (not self-edges)
+     void fill_mledges() {
+        std::pair<std::vector<NL>,std::vector<Vertex>> combined = get_all_nls();
+        for (int ii=0; ii<combined.first.size(); ii++) {
+            for (int jj=ii+1; jj<combined.first.size(); jj++) {add_mledge(combined.first[ii],combined.first[jj]);}
+        }
+     }
      std::pair<EdgeIterator,EdgeIterator> get_all_mledges() const {return edges(m);}
      void print_all_mledges() const {
         std::pair<EdgeIterator,EdgeIterator> edge_iter_pair = get_all_mledges();
@@ -360,6 +367,12 @@ int main() {
     mlnet.add_mledge({5,6,7},{3,2,1});
     number_of_subnets = nl_mesu(mlnet,{3,3,3});
     std::cout << "Number of subnets: " << number_of_subnets << "\n";
+    std::cout << "Make a 2x2x2 complete network:\n";
+    MLnet full;
+    full.add_nodelayer({1,1,1});full.add_nodelayer({2,1,1});full.add_nodelayer({1,2,1});full.add_nodelayer({2,2,1});
+    full.add_nodelayer({1,1,2});full.add_nodelayer({2,1,2});full.add_nodelayer({1,2,2});full.add_nodelayer({2,2,2});
+    full.fill_mledges();
+    full.print_all_mledges();
 }
 
 
