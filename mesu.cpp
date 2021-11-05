@@ -373,7 +373,6 @@ int main() {
     full.add_nodelayer({1,1,1});full.add_nodelayer({2,1,1});full.add_nodelayer({1,2,1});full.add_nodelayer({2,2,1});
     full.add_nodelayer({1,1,2});full.add_nodelayer({2,1,2});full.add_nodelayer({1,2,2});full.add_nodelayer({2,2,2});
     full.fill_mledges();
-    full.print_all_mledges();
     std::cout << "Check nl-mesu:\n";
     number_of_subnets = nl_mesu(full,{2,2,2});
     std::cout << "Number of subnets {2,2,2}: " << number_of_subnets << " (this number should be 1)\n";
@@ -385,6 +384,13 @@ int main() {
     std::cout << "Number of subnets {1,1,1}: " << number_of_subnets << " (this number should be 8)\n";
     number_of_subnets = nl_mesu(full,{1,1,3});
     std::cout << "Number of subnets {1,1,3}: " << number_of_subnets << " (this number should be 0)\n";
+    std::cout << "Add nl {1,1,3} connected to {1,1,1}:\n";
+    full.add_nodelayer({1,1,3});
+    full.add_mledge({1,1,1},{1,1,3});
+    number_of_subnets = nl_mesu(full,{1,2,2});
+    std::cout << "Number of subnets {1,2,2}: " << number_of_subnets << " (this number should be 3)\n";
+    number_of_subnets = nl_mesu(full,{2,1,3});
+    std::cout << "Number of subnets {2,1,3}: " << number_of_subnets << " (this number should be 1)\n";
 }
 
 
