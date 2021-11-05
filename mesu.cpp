@@ -244,7 +244,8 @@ bool valid_nl_mesu(const MLnet& mlnet, const std::unordered_set<NL>& VM_subnet, 
     if (sub.is_connected()) {
         bool all_indices_valid = true;
         std::pair<std::vector<NL>,std::vector<Vertex>> all_nls = sub.get_all_nls();
-        for (Vertex nl_id : all_nls.second) {if (nl_id < gamma_index) {all_indices_valid = false;break;}}
+        // get id from original net, not subnet
+        for (NL sub_nl : all_nls.first) {if (mlnet.get_id_from_nl(sub_nl) < gamma_index) {all_indices_valid = false;break;}}
         if (all_indices_valid) {
             std::unordered_set<NL> VM_neighs = VM_neighbors(sub,VM_subnet);
             bool all_neighs_in_extension = true;
