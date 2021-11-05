@@ -375,7 +375,15 @@ int main() {
     full.print_all_mledges();
     std::cout << "Check nl-mesu:\n";
     number_of_subnets = nl_mesu(full,{2,2,2});
-    std::cout << "Number of subnets: " << number_of_subnets << "\n";
+    std::cout << "Number of subnets {2,2,2}: " << number_of_subnets << " (this number should be 1)\n";
+    number_of_subnets = nl_mesu(full,{2,1,2});
+    std::cout << "Number of subnets {2,1,2}: " << number_of_subnets << " (this number should be 2)\n";
+    number_of_subnets = nl_mesu(full,{1,1,2});
+    std::cout << "Number of subnets {1,1,2}: " << number_of_subnets << " (this number should be 4)\n";
+    number_of_subnets = nl_mesu(full,{1,1,1});
+    std::cout << "Number of subnets {1,1,1}: " << number_of_subnets << " (this number should be 8)\n";
+    number_of_subnets = nl_mesu(full,{1,1,3});
+    std::cout << "Number of subnets {1,1,3}: " << number_of_subnets << " (this number should be 0)\n";
 }
 
 
