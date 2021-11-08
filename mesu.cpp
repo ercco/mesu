@@ -351,6 +351,39 @@ std::unordered_set<NL> subnet_diff(const MLnet& mlnet, const std::array<std::uno
     return nodelayers_S_prime;
 }
 
+std::unordered_set<NL> subnet_valid_neighbor_nls(const MLnet& mlnet, const std::array<std::unordered_set<int>,N_ASPECTS+1>& S, const Vertex& gamma_index) {
+    // cast sets into vectors
+    std::unordered_set<NL> sub_nls = subnet_nodelayers(mlnet, S);
+    std::unordered_set<NL> valid_neighs;
+    for (NL nl : sub_nls) {
+        for (NL neigh : mlnet.get_neighbors(nl)) {
+            if (sub_nls.count(neigh) < 1 and valid_neighs.count(neigh) < 1) {
+                bool neigh_indices_valid = true;
+                std::array<std::unordered_set<int>,N_ASPECTS+1> S_prime = S;
+                std::array<int,N_ASPECTS+1> neigh_el = neigh.get_el();
+                for (int jj=0; jj<N_ASPECTS+1; jj++) {S_prime[jj].insert(neigh_el[jj]);}
+                for (NL possible_addition : subnet_diff(mlnet,S_prime,S)) {
+                    if (mlnet.get_id_from_nl(possible_addition) < gamma_index) {
+                        neigh_indices_valid = false;
+                        break;
+                    }
+                }
+                if (neigh_indices_valid) {valid_neighs.insert(neigh);}
+            }
+        }
+    }
+    return valid_neighs;
+}
+
+std::array<std::unordered_set<int>,N_ASPECTS+1> subnet_valid_neighbor_elem_layers(const MLnet& mlnet, const std::array<std::unordered_set<int>,N_ASPECTS+1>& S, const Vertex& gamma_index) {
+    std::array<std::unordered_set<int>,N_ASPECTS+1> N;
+    for (NL valid_neigh : subnet_valid_neighbor_nls(mlnet,S,gamma_index)) {
+        std::array<int,N_ASPECTS+1> neigh_el = valid_neigh.get_el();
+        for (int ii=0; ii<N_ASPECTS+1; ii++) {N[ii].insert(neigh_el[ii]);}
+    }
+    return N;
+}
+
 bool valid_a_mesu(const MLnet& mlnet, const std::array<std::unordered_set<int>,N_ASPECTS+1>& S) {
     // cast sets into vectors
     std::array<std::vector<int>,N_ASPECTS+1> subnet_elem_layers;
@@ -376,6 +409,7 @@ void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, s
         if (valid_a_mesu(mlnet, S)) {total_number++;}
         return;
     }
+    std::array<std::unordered_set<int>,N_ASPECTS+1> N = subnet_valid_neighbor_elem_layers(mlnet,S,gamma_index);
     // TODO
 }
 
