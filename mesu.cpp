@@ -351,6 +351,34 @@ std::unordered_set<NL> subnet_diff(const MLnet& mlnet, const std::array<std::uno
     return nodelayers_S_prime;
 }
 
+bool valid_a_mesu(const MLnet& mlnet, const std::array<std::unordered_set<int>,N_ASPECTS+1>& S) {
+    // cast sets into vectors
+    std::array<std::vector<int>,N_ASPECTS+1> subnet_elem_layers;
+    for (int ii=0; ii<N_ASPECTS+1; ii++) {
+        subnet_elem_layers[ii].reserve(S[ii].size());
+        for (int el : S[ii]) {subnet_elem_layers[ii].push_back(el);}
+    }
+    MLnet sub = mlnet.subnet(subnet_elem_layers);
+    if (sub.is_connected()) {
+        // iterate over nl's and make valid_S from their elem layers, compare to S
+        std::pair<std::vector<NL>,std::vector<Vertex>> all_nls = sub.get_all_nls();
+        std::array<std::unordered_set<int>,N_ASPECTS+1> S_valid;
+        for (NL nl : all_nls.first) {std::array<int,N_ASPECTS+1> el=nl.get_el(); for (int ii=0; ii<N_ASPECTS+1; ii++) {S_valid[ii].insert(el[ii]);}}
+        if (S == S_valid) {return true;}
+    }
+    return false;
+}
+
+void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::array<std::unordered_set<int>,N_ASPECTS+1>& S, std::array<std::unordered_set<int>,N_ASPECTS+1>& extension, Vertex& gamma_index, int& total_number) {
+    bool size_ok = true;
+    for (int ii=0; ii<N_ASPECTS+1; ii++) {if (S[ii].size()!=size[ii]) {size_ok=false;break;}}
+    if (size_ok) {
+        if (valid_a_mesu(mlnet, S)) {total_number++;}
+        return;
+    }
+    // TODO
+}
+
 int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
     int total_number = 0;
     std::pair<std::vector<NL>,std::vector<Vertex>> combined = mlnet.get_all_nls();
