@@ -402,6 +402,12 @@ bool valid_a_mesu(const MLnet& mlnet, const std::array<std::unordered_set<int>,N
     return false;
 }
 
+std::vector<int> candidate_extension_indices(const std::array<std::unordered_set<int>,N_ASPECTS+1>& extension, std::array<std::unordered_set<int>,N_ASPECTS+1>& S, const std::array<int,N_ASPECTS+1> size) {
+    std::vector<int> candidates;
+    for (int ii=0; ii<N_ASPECTS+1; ii++) {if ((not extension[ii].empty()) and (S[ii].size() < size[ii])) {candidates.push_back(ii);}}
+    return candidates;
+}
+
 void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::array<std::unordered_set<int>,N_ASPECTS+1>& S, std::array<std::unordered_set<int>,N_ASPECTS+1>& extension, Vertex& gamma_index, int& total_number) {
     bool size_ok = true;
     for (int ii=0; ii<N_ASPECTS+1; ii++) {if (S[ii].size()!=size[ii]) {size_ok=false;break;}}
@@ -410,7 +416,36 @@ void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, s
         return;
     }
     std::array<std::unordered_set<int>,N_ASPECTS+1> N = subnet_valid_neighbor_elem_layers(mlnet,S,gamma_index);
-    // TODO
+    std::vector<int> possible_indices = candidate_extension_indices(extension,S,size);
+    while (not possible_indices.empty()) {
+        int chosen_index = possible_indices.front();
+        // get l
+        int l = *(extension[chosen_index].begin());
+        extension[chosen_index].erase(extension[chosen_index].begin());
+        std::array<std::unordered_set<int>,N_ASPECTS+1> S_prime;
+        std::array<std::unordered_set<int>,N_ASPECTS+1> extension_prime;
+        // is this deepcopy?
+        for (int ii=0; ii<N_ASPECTS+1; ii++) {S_prime[ii] = S[ii]; extension_prime[ii] = extension[ii];}
+        S_prime[chosen_index].insert(l);
+        std::unordered_set<NL> S_prime_nls = subnet_nodelayers(mlnet,S_prime);
+        // make new possible_indices
+        possible_indices = candidate_extension_indices(extension,S,size);
+        for (NL tau : subnet_diff(mlnet,S_prime,S)) {
+            for (NL delta : mlnet.get_neighbors(tau)) {
+                if (S_prime_nls.count(delta) < 1) {
+                    std::array<std::unordered_set<int>,N_ASPECTS+1> S_prime_with_delta = S_prime;
+                    std::array<int,N_ASPECTS+1> delta_els = delta.get_el();
+                    for (int jj=0; jj<N_ASPECTS+1; jj++) {S_prime_with_delta[jj].insert(delta_els[jj]);}
+                    bool lambda_indices_valid = true;
+                    for (NL lambda : subnet_diff(mlnet,S_prime_with_delta,S_prime)) {
+                        if (mlnet.get_id_from_nl(lambda) < gamma_index) {lambda_indices_valid = false;break;}
+                    }
+                    if (lambda_indices_valid) {for (int kk=0; kk<N_ASPECTS+1; kk++) {if (N[kk].count(delta_els[kk]) < 1 and S_prime[kk].count(delta_els[kk]) < 1) {extension_prime[kk].insert(delta_els[kk]);}}}
+                }
+            }
+        }
+        extend_a_mesu(mlnet,size,S_prime,extension_prime,gamma_index,total_number);
+    }
 }
 
 int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
@@ -430,7 +465,7 @@ int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
             for (NL lambda : sub_diff) {if (mlnet.get_id_from_nl(lambda) < gamma_index) {lambda_indices_valid=false;break;}}
             if (lambda_indices_valid) {for (int jj=0; jj<N_ASPECTS+1; jj++) {int el=neigh.get_el()[jj]; if (S[jj].count(el)<1) {extension[jj].insert(el);}}}
         }
-        // TODO: extend_a_mesu
+        extend_a_mesu(mlnet,size,S,extension,gamma_index,total_number);
     }
     return total_number;
 }
@@ -485,36 +520,47 @@ int main() {
     mlnet.add_nodelayer({3,2,1});
     if (mlnet.is_connected()) {std::cout << "mlnet is connected\n";} else {std::cout << "mlnet is not connected\n";}
     if (sub.is_connected()) {std::cout << "subnet is connected\n";} else {std::cout << "subnet is not connected\n";}
-    std::cout << "Testing nl-mesu:\n";
+    std::cout << "Testing nl-mesu and a-mesu:\n";
     int number_of_subnets = nl_mesu(mlnet,{3,3,3});
-    std::cout << "Number of subnets: " << number_of_subnets << "\n";
+    std::cout << "nl-mesu number of subnets: " << number_of_subnets << "\n";
+    int number_of_subnets_2 = a_mesu(mlnet,{3,3,3});
+    std::cout << "a-mesu number of subnets: " << number_of_subnets_2 << "\n";
     std::cout << "Add edge {5,6,7},{3,2,1}\n";
     mlnet.add_mledge({5,6,7},{3,2,1});
     number_of_subnets = nl_mesu(mlnet,{3,3,3});
-    std::cout << "Number of subnets: " << number_of_subnets << "\n";
+    std::cout << "nl-mesu number of subnets: " << number_of_subnets << "\n";
+    number_of_subnets_2 = a_mesu(mlnet,{3,3,3});
+    std::cout << "a-mesu number of subnets: " << number_of_subnets_2 << "\n";
     std::cout << "Make a 2x2x2 complete network:\n";
     MLnet full;
     full.add_nodelayer({1,1,1});full.add_nodelayer({2,1,1});full.add_nodelayer({1,2,1});full.add_nodelayer({2,2,1});
     full.add_nodelayer({1,1,2});full.add_nodelayer({2,1,2});full.add_nodelayer({1,2,2});full.add_nodelayer({2,2,2});
     full.fill_mledges();
-    std::cout << "Check nl-mesu:\n";
+    std::cout << "Check nl-mesu and a-mesu:\n";
     number_of_subnets = nl_mesu(full,{2,2,2});
-    std::cout << "Number of subnets {2,2,2}: " << number_of_subnets << " (this number should be 1)\n";
+    number_of_subnets_2 = a_mesu(full,{2,2,2});
+    std::cout << "Number of subnets {2,2,2}: nl: " << number_of_subnets << " a: " << number_of_subnets_2 << " (this number should be 1)\n";
     number_of_subnets = nl_mesu(full,{2,1,2});
-    std::cout << "Number of subnets {2,1,2}: " << number_of_subnets << " (this number should be 2)\n";
+    number_of_subnets_2 = a_mesu(full,{2,1,2});
+    std::cout << "Number of subnets {2,1,2}: nl: " << number_of_subnets << " a: " << number_of_subnets_2 << " (this number should be 2)\n";
     number_of_subnets = nl_mesu(full,{1,1,2});
-    std::cout << "Number of subnets {1,1,2}: " << number_of_subnets << " (this number should be 4)\n";
+    number_of_subnets_2 = a_mesu(full,{1,1,2});
+    std::cout << "Number of subnets {1,1,2}: nl: " << number_of_subnets << " a: " << number_of_subnets_2 << " (this number should be 4)\n";
     number_of_subnets = nl_mesu(full,{1,1,1});
-    std::cout << "Number of subnets {1,1,1}: " << number_of_subnets << " (this number should be 8)\n";
+    number_of_subnets_2 = a_mesu(full,{1,1,1});
+    std::cout << "Number of subnets {1,1,1}: nl: " << number_of_subnets << " a: " << number_of_subnets_2 << " (this number should be 8)\n";
     number_of_subnets = nl_mesu(full,{1,1,3});
-    std::cout << "Number of subnets {1,1,3}: " << number_of_subnets << " (this number should be 0)\n";
+    number_of_subnets_2 = a_mesu(full,{1,1,3});
+    std::cout << "Number of subnets {1,1,3}: nl: " << number_of_subnets << " a: " << number_of_subnets_2 << " (this number should be 0)\n";
     std::cout << "Add nl {1,1,3} connected to {1,1,1}:\n";
     full.add_nodelayer({1,1,3});
     full.add_mledge({1,1,1},{1,1,3});
     number_of_subnets = nl_mesu(full,{1,2,2});
-    std::cout << "Number of subnets {1,2,2}: " << number_of_subnets << " (this number should be 3)\n";
+    number_of_subnets_2 = a_mesu(full,{1,2,2});
+    std::cout << "Number of subnets {1,2,2}: nl: " << number_of_subnets << " a: " << number_of_subnets_2 << " (this number should be 3)\n";
     number_of_subnets = nl_mesu(full,{2,1,3});
-    std::cout << "Number of subnets {2,1,3}: " << number_of_subnets << " (this number should be 1)\n";
+    number_of_subnets_2 = a_mesu(full,{2,1,3});
+    std::cout << "Number of subnets {2,1,3}: nl: " << number_of_subnets << " a: " << number_of_subnets_2 << " (this number should be 1)\n";
 }
 
 
