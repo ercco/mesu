@@ -1,4 +1,5 @@
 #include <iostream>                  // for std::cout
+#include <fstream>                   // for file reading
 #include <utility>                   // for std::pair
 #include <algorithm>                 // for std::for_each
 #include <array>                     // for copyable elementary layer arrays
@@ -13,6 +14,8 @@
 #define N_ASPECTS 2
 
 using namespace boost;
+
+// multilayer data structures ------------------------------------------------------------------------------------------------
 
 // node-layer class
 class NL {
@@ -469,6 +472,10 @@ int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
     }
     return total_number;
 }
+
+// file io -------------------------------------------------------------------------------------------------------------------
+
+
 
 // main ----------------------------------------------------------------------------------------------------------------------
 
