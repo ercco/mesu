@@ -12,7 +12,8 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/connected_components.hpp>
-#define N_ASPECTS 2
+#include <chrono>                    // for timing
+#define N_ASPECTS 1
 
 using namespace boost;
 
@@ -483,7 +484,9 @@ MLnet load_ppi_data(std::string filename) {
     std::ifstream file(filename);
     int layerID, node1ID, node2ID, edgeweight;
     while (file >> layerID >> node1ID >> node2ID >> edgeweight) {
-        //mlnet.add_nodelayer()
+        mlnet.add_nodelayer({node1ID,layerID});
+        mlnet.add_nodelayer({node2ID,layerID});
+        mlnet.add_mledge({node1ID,layerID},{node2ID,layerID});
     }
     return mlnet;
 }
@@ -491,6 +494,7 @@ MLnet load_ppi_data(std::string filename) {
 // main ----------------------------------------------------------------------------------------------------------------------
 
 int main() {
+    /*
     MLnet mlnet;
     mlnet.add_nodelayer({5,6,7});
     mlnet.add_nodelayer({2,3,4});
@@ -579,6 +583,24 @@ int main() {
     number_of_subnets = nl_mesu(full,{2,1,3});
     number_of_subnets_2 = a_mesu(full,{2,1,3});
     std::cout << "Number of subnets {2,1,3}: nl: " << number_of_subnets << " a: " << number_of_subnets_2 << " (this number should be 1)\n";
+    */
+    auto start = std::chrono::steady_clock::now();
+    MLnet celegans = load_ppi_data("multiplex_pp_data/Celegans_Multiplex_Genetic/Dataset/celegans_genetic_multiplex.edges");
+    auto end = std::chrono::steady_clock::now();
+    auto tdiff = end-start;
+    std::cout << std::chrono::duration<double,std::milli> (tdiff).count() << " ms for loading net\n";
+    // algos
+    int number_of_subnets, number_of_subnets2;
+    start = std::chrono::steady_clock::now();
+    number_of_subnets = nl_mesu(celegans,{3,2});
+    end = std::chrono::steady_clock::now();
+    tdiff = end-start;
+    std::cout << std::chrono::duration<double,std::milli> (tdiff).count() << " ms for 3,2 nl-mesu (" << number_of_subnets << " subnets)\n";
+    start = std::chrono::steady_clock::now();
+    number_of_subnets2 = a_mesu(celegans,{3,2});
+    end = std::chrono::steady_clock::now();
+    tdiff = end-start;
+    std::cout << std::chrono::duration<double,std::milli> (tdiff).count() << " ms for 3,2 a-mesu (" << number_of_subnets2 << " subnets)\n";
 }
 
 
