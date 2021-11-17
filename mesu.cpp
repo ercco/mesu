@@ -1,5 +1,6 @@
 #include <iostream>                  // for std::cout
 #include <fstream>                   // for file reading
+#include <string>
 #include <utility>                   // for std::pair
 #include <algorithm>                 // for std::for_each
 #include <array>                     // for copyable elementary layer arrays
@@ -55,9 +56,11 @@ class MLnet {
     public:
      int count_nodelayer(NL nl) const {return nls.count(nl);}
      void add_nodelayer(NL nl) {
-        Vertex vertex_descriptor = add_vertex(m);
-        nls[nl] = vertex_descriptor;
-        reverse_nls[vertex_descriptor] = nl;
+        if (nls.count(nl) < 1) {
+            Vertex vertex_descriptor = add_vertex(m);
+            nls[nl] = vertex_descriptor;
+            reverse_nls[vertex_descriptor] = nl;
+        }
      }
      void add_nodelayer(std::array<int,N_ASPECTS+1> elem_layers) {
         NL nl (elem_layers);
@@ -475,7 +478,15 @@ int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
 
 // file io -------------------------------------------------------------------------------------------------------------------
 
-
+MLnet load_ppi_data(std::string filename) {
+    MLnet mlnet;
+    std::ifstream file(filename);
+    int layerID, node1ID, node2ID, edgeweight;
+    while (file >> layerID >> node1ID >> node2ID >> edgeweight) {
+        //mlnet.add_nodelayer()
+    }
+    return mlnet;
+}
 
 // main ----------------------------------------------------------------------------------------------------------------------
 
