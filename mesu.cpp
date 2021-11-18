@@ -483,10 +483,27 @@ MLnet load_ppi_data(std::string filename) {
     MLnet mlnet;
     std::ifstream file(filename);
     int layerID, node1ID, node2ID, edgeweight;
+    std::unordered_set<int> nodes;
+    std::set<int> layers;
+    std::unordered_map<int,std::unordered_set<int>> nodes_by_layer;
     while (file >> layerID >> node1ID >> node2ID >> edgeweight) {
         mlnet.add_nodelayer({node1ID,layerID});
         mlnet.add_nodelayer({node2ID,layerID});
         mlnet.add_mledge({node1ID,layerID},{node2ID,layerID});
+        nodes_by_layer[layerID].insert(node1ID);
+        nodes_by_layer[layerID].insert(node2ID);
+        nodes.insert(node1ID);
+        nodes.insert(node2ID);
+        layers.insert(layerID);
+    }
+    // add interlayer edges
+    // (NB! only nodelayers with connections on a layer are included on that layer)
+    for (int node : nodes) {
+        for (auto it1 = layers.begin(); it1 != layers.end(); it1++) {
+            for (auto it2 = layers.begin(); it2 != layers.end(); it2++) {
+                if (*it1 < *it2 and nodes_by_layer[*it1].count(node) > 0 and nodes_by_layer[*it2].count(node) > 0) {mlnet.add_mledge({node,*it1},{node,*it2});}
+            }
+        }
     }
     return mlnet;
 }
