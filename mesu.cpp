@@ -1,5 +1,6 @@
 #include <iostream>                  // for std::cout
 #include <fstream>                   // for file reading
+#include <filesystem>                // for checking if file exists
 #include <string>
 #include <utility>                   // for std::pair
 #include <algorithm>                 // for std::for_each
@@ -496,6 +497,7 @@ MLnet load_ppi_data(std::string filename) {
         nodes.insert(node2ID);
         layers.insert(layerID);
     }
+    file.close();
     // add interlayer edges
     // (NB! only nodelayers with connections on a layer are included on that layer)
     for (int node : nodes) {
@@ -506,6 +508,10 @@ MLnet load_ppi_data(std::string filename) {
         }
     }
     return mlnet;
+}
+
+void run_ppi_data(std::string filename) {
+    
 }
 
 // main ----------------------------------------------------------------------------------------------------------------------
