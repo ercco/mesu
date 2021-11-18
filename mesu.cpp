@@ -480,7 +480,7 @@ int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
 
 // file io -------------------------------------------------------------------------------------------------------------------
 
-MLnet load_ppi_data(std::string filename) {
+MLnet load_ppi_data(const std::string filename) {
     MLnet mlnet;
     std::ifstream file(filename);
     int layerID, node1ID, node2ID, edgeweight;
@@ -510,8 +510,22 @@ MLnet load_ppi_data(std::string filename) {
     return mlnet;
 }
 
-void run_ppi_data(std::string filename) {
-    
+void run_ppi_data(const std::string& filename, const std::string& savename, const std::array<int,N_ASPECTS+1>& size) {
+    if (not std::filesystem::exists(savename)) {
+        MLnet mlnet = load_ppi_data(filename);
+        std::ofstream output(savename);
+        auto start = std::chrono::steady_clock::now();
+        int number_of_subnets = nl_mesu(mlnet,size);
+        auto end = std::chrono::steady_clock::now();
+        auto tdiff = end-start;
+        output << "nl-mesu "<<std::chrono::duration<double> (tdiff).count() << " " << number_of_subnets << "\n";
+        start = std::chrono::steady_clock::now();
+        number_of_subnets = a_mesu(mlnet,size);
+        end = std::chrono::steady_clock::now();
+        tdiff = end-start;
+        output << "a-mesu "<<std::chrono::duration<double> (tdiff).count() << " " << number_of_subnets << "\n";
+        output.close();
+    }
 }
 
 // main ----------------------------------------------------------------------------------------------------------------------
@@ -607,6 +621,7 @@ int main() {
     number_of_subnets_2 = a_mesu(full,{2,1,3});
     std::cout << "Number of subnets {2,1,3}: nl: " << number_of_subnets << " a: " << number_of_subnets_2 << " (this number should be 1)\n";
     */
+    /*
     auto start = std::chrono::steady_clock::now();
     MLnet celegans = load_ppi_data("multiplex_pp_data/Celegans_Multiplex_Genetic/Dataset/celegans_genetic_multiplex.edges");
     auto end = std::chrono::steady_clock::now();
@@ -624,6 +639,8 @@ int main() {
     end = std::chrono::steady_clock::now();
     tdiff = end-start;
     std::cout << std::chrono::duration<double> (tdiff).count() << " s for 3,2 a-mesu (" << number_of_subnets2 << " subnets)\n";
+    */
+    run_ppi_data("multiplex_pp_data/Celegans_Multiplex_Genetic/Dataset/celegans_genetic_multiplex.edges","cpp_results/celegans_(3,2).txt",{3,2});
 }
 
 
