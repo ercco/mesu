@@ -559,7 +559,7 @@ void run_all_ppi() {
         for (int ii=0; ii<filenames.size(); ii++) {
             savename = "cpp_results/" + ids[ii] + "_(" + std::to_string(size[0]) + "," + std::to_string(size[1]) + ").txt";
             run_ppi_data(filenames[ii],savename,size);
-            std::cout << ids[ii] << " (" << size[0] << "," << size[1] << ") done";
+            std::cout << ids[ii] << " (" << size[0] << "," << size[1] << ") done" << std::endl;
         }
     }
 }
