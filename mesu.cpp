@@ -528,6 +528,42 @@ void run_ppi_data(const std::string& filename, const std::string& savename, cons
     }
 }
 
+void run_all_ppi() {
+    std::vector<std::string> filenames = {"multiplex_pp_data/Arabidopsis_Multiplex_Genetic/Dataset/arabidopsis_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Bos_Multiplex_Genetic/Dataset/bos_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Candida_Multiplex_Genetic/Dataset/candida_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Celegans_Multiplex_Genetic/Dataset/celegans_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Drosophila_Multiplex_Genetic/Dataset/drosophila_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Gallus_Multiplex_Genetic/Dataset/gallus_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Mus_Multiplex_Genetic/Dataset/mus_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Plasmodium_Multiplex_Genetic/Dataset/plasmodium_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Rattus_Multiplex_Genetic/Dataset/rattus_genetic_multiplex.edges",
+                                          "multiplex_pp_data/SacchCere_Multiplex_Genetic/Dataset/sacchcere_genetic_multiplex.edges",
+                                          "multiplex_pp_data/SacchPomb_Multiplex_Genetic/Dataset/sacchpomb_genetic_multiplex.edges"
+                                         };
+    std::vector<std::string> ids = {"arabidopsis",
+                                    "bos",
+                                    "candida",
+                                    "celegans",
+                                    "drosophila",
+                                    "gallus",
+                                    "mus",
+                                    "plasmodium",
+                                    "rattus",
+                                    "sacchcere",
+                                    "sacchpomb"
+                                   };
+    std::vector<std::array<int,N_ASPECTS+1>> sizes = {{2,2},{3,2},{2,3},{3,3},{4,2},{4,3}};
+    std::string savename;
+    for (std::array<int,N_ASPECTS+1> size : sizes) {
+        for (int ii=0; ii<filenames.size(); ii++) {
+            savename = "cpp_results/" + ids[ii] + "_(" + std::to_string(size[0]) + "," + std::to_string(size[1]) + ").txt";
+            run_ppi_data(filenames[ii],savename,size);
+            std::cout << ids[ii] << " (" << size[0] << "," << size[1] << ") done";
+        }
+    }
+}
+
 // main ----------------------------------------------------------------------------------------------------------------------
 
 int main() {
@@ -640,7 +676,8 @@ int main() {
     tdiff = end-start;
     std::cout << std::chrono::duration<double> (tdiff).count() << " s for 3,2 a-mesu (" << number_of_subnets2 << " subnets)\n";
     */
-    run_ppi_data("multiplex_pp_data/Celegans_Multiplex_Genetic/Dataset/celegans_genetic_multiplex.edges","cpp_results/celegans_(3,2).txt",{3,2});
+    //run_ppi_data("multiplex_pp_data/Celegans_Multiplex_Genetic/Dataset/celegans_genetic_multiplex.edges","cpp_results/celegans_(3,2).txt",{3,2});
+    run_all_ppi();
 }
 
 
