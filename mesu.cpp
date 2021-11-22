@@ -528,7 +528,7 @@ void run_ppi_data(const std::string& filename, const std::string& savename, cons
     }
 }
 
-void run_all_ppi() {
+void run_all_ppi(int specific_index = -1) {
     std::vector<std::string> filenames = {"multiplex_pp_data/Arabidopsis_Multiplex_Genetic/Dataset/arabidopsis_genetic_multiplex.edges",
                                           "multiplex_pp_data/Bos_Multiplex_Genetic/Dataset/bos_genetic_multiplex.edges",
                                           "multiplex_pp_data/Candida_Multiplex_Genetic/Dataset/candida_genetic_multiplex.edges",
@@ -558,8 +558,10 @@ void run_all_ppi() {
     for (std::array<int,N_ASPECTS+1> size : sizes) {
         for (int ii=0; ii<filenames.size(); ii++) {
             savename = "cpp_results/" + ids[ii] + "_(" + std::to_string(size[0]) + "," + std::to_string(size[1]) + ").txt";
-            run_ppi_data(filenames[ii],savename,size);
-            std::cout << ids[ii] << " (" << size[0] << "," << size[1] << ") done" << std::endl;
+            if (specific_index == -1 or specific_index == ii) {
+                run_ppi_data(filenames[ii],savename,size);
+                std::cout << ids[ii] << " (" << size[0] << "," << size[1] << ") done" << std::endl;
+            }
         }
     }
 }
