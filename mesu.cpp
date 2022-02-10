@@ -566,9 +566,15 @@ void run_all_ppi(int specific_index = -1) {
     }
 }
 
+void print_arguments(const std::vector<std::string> args) {
+    for (std::string param_str : args) {
+        std::cout << param_str << "\n";
+    }
+}
+
 // main ----------------------------------------------------------------------------------------------------------------------
 
-int main() {
+int main(int argc, char* argv[]) {
     /*
     MLnet mlnet;
     mlnet.add_nodelayer({5,6,7});
@@ -679,7 +685,9 @@ int main() {
     std::cout << std::chrono::duration<double> (tdiff).count() << " s for 3,2 a-mesu (" << number_of_subnets2 << " subnets)\n";
     */
     //run_ppi_data("multiplex_pp_data/Celegans_Multiplex_Genetic/Dataset/celegans_genetic_multiplex.edges","cpp_results/celegans_(3,2).txt",{3,2});
-    run_all_ppi();
+    //run_all_ppi();
+    std::vector<std::string> args(argv, argv+argc);
+    print_arguments(args);
 }
 
 
