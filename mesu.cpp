@@ -566,10 +566,17 @@ void run_all_ppi(int specific_index = -1) {
     }
 }
 
-void print_arguments(const std::vector<std::string> args) {
+void print_arguments(const std::vector<std::string>& args) {
     for (std::string param_str : args) {
         std::cout << param_str << "\n";
     }
+}
+
+void test_write_to_argument_file(const std::string& fname) {
+    std::ofstream output(fname);
+    output << "Writing text to file\n";
+    output << "and on the second line\n";
+    output.close();
 }
 
 // main ----------------------------------------------------------------------------------------------------------------------
@@ -688,6 +695,9 @@ int main(int argc, char* argv[]) {
     //run_all_ppi();
     std::vector<std::string> args(argv, argv+argc);
     print_arguments(args);
+    if (argc > 1) {
+        test_write_to_argument_file(args[1]);
+    }
 }
 
 
