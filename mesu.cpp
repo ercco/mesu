@@ -14,7 +14,7 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/connected_components.hpp>
 #include <chrono>                    // for timing
-#define N_ASPECTS 1
+#define N_ASPECTS 2
 
 using namespace boost;
 
@@ -480,6 +480,39 @@ int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
 
 // file io -------------------------------------------------------------------------------------------------------------------
 
+MLnet load_edge_file(const std::string filename) {
+    // file format: a0 a1 a2 ... b0 b1 b2 ... (anything after ignored)
+    // elementary layers need to be integers
+    // only specifying one nodelayer per line adds that nodelayer
+    MLnet mlnet;
+    std::ifstream file(filename);
+    std::string current_line;
+    std::string current_value_str;
+    std::array<std::array<int,N_ASPECTS+1>,2> current_elem_layers;
+    int aspect_counter = 0;
+    int edge_endpoint_counter = 0;
+    while (std::getline(file,current_line)) {
+        auto sstream = std::istringstream(current_line);
+        while (sstream >> current_value_str) {
+            current_elem_layers[edge_endpoint_counter][aspect_counter] = std::stoi(current_value_str);
+            aspect_counter++;
+            if (aspect_counter > N_ASPECTS) {
+                mlnet.add_nodelayer(current_elem_layers[edge_endpoint_counter]);
+                aspect_counter = 0;
+                edge_endpoint_counter++;
+            }
+            if (edge_endpoint_counter > 1) {
+                mlnet.add_mledge(current_elem_layers[0],current_elem_layers[1]);
+                break;
+            }
+        }
+        aspect_counter = 0;
+        edge_endpoint_counter = 0;
+    }
+    file.close();
+    return mlnet;
+}
+
 MLnet load_ppi_data(const std::string filename) {
     MLnet mlnet;
     std::ifstream file(filename);
@@ -698,6 +731,9 @@ int main(int argc, char* argv[]) {
     if (argc > 1) {
         test_write_to_argument_file(args[1]);
     }
+    MLnet mlnet = load_edge_file("aaanetworkfile.edges");
+    mlnet.print_all_nls();
+    mlnet.print_all_mledges();
 }
 
 
