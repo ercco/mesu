@@ -59,6 +59,16 @@ def load_edgelist(fname):
                 M[node1,layer][node2,layer] = 1
     return M
 
+def save_edgelist_cpp_format(M,savename):
+    # pymnet edge notation: a0, b0, a1, b1, ..., ak, bk
+    # where aN is elem layer of node-layer a for aspect N
+    # saving notation: a0 a1 a2 ... b0 b1 b2 ...
+    with open(savename,'a') as f:
+        for e in M.edges:
+            nl1 = e[0:(M.aspects+1)*2:2]
+            nl2 = e[1:(M.aspects+1)*2:2]
+            f.write(' '.join([str(x) for x in nl1+nl2])+'\n')
+
 def heatmap(data, row_labels, col_labels, xlabel, ylabel, title='', ax=None,
             cbar_kw={}, cbarlabel="", **kwargs):
     """
