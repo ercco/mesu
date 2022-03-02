@@ -349,14 +349,28 @@ def run_times_for_cpp():
                             a_mesu_time = float(data[1])
                             a_mesu_number = int(data[2])
                     assert nl_mesu_number == a_mesu_number
-                    subnet_sizes.append(size)
+                    subnet_sizes.append(str(size))
                     number_of_subnets_found.append(nl_mesu_number)
-                    time_fractions.append(nl_mesu_time/a_mesu_time)
+                    time_fractions.append(a_mesu_time/nl_mesu_time)
             except:
                 pass
     return subnet_sizes,number_of_subnets_found,time_fractions
 
-
+def plot_run_times_for_cpp():
+    subnet_sizes,number_of_subnets_found,time_fractions = run_times_for_cpp()
+    #sc = plt.scatter(subnet_sizes,number_of_subnets_found,s=200,c=time_fractions,norm=colors.TwoSlopeNorm(vcenter=1.0),cmap='BrBG_r',edgecolors='black')
+    sc = plt.scatter(subnet_sizes,number_of_subnets_found,s=200,c=time_fractions,cmap='Oranges',edgecolors='black')
+    offsets = sc.get_offsets()
+    offsets[:,0] += np.random.uniform(-0.1,0.1,offsets.shape[0])
+    sc.set_offsets(offsets)
+    plt.gca().set_yscale('log')
+    cb = plt.colorbar(sc)
+    cb.ax.set_ylabel(r'$T_{A-MESU}/T_{NL-MESU}$', rotation=-90, va="bottom")
+    plt.xlabel('Subnet size')
+    plt.ylabel('Number of subnets found')
+    plt.title('C++ relative running times for ppi data')
+    plt.tight_layout(pad=0.1)
+    plt.savefig('cpp_figures/cpp_relative_run_times.pdf',bbox_inches='tight')
 
 
 
