@@ -318,7 +318,43 @@ def run_times_for_example_data():
         plt.show()
     plt.close('all')
 
-
+def run_times_for_cpp():
+    ids = ("arabidopsis",
+           "bos",
+           "candida",
+           "celegans",
+           "drosophila",
+           "gallus",
+           "mus",
+           "plasmodium",
+           "rattus",
+           "sacchcere",
+           "sacchpomb"
+           )
+    sizes = ((2,2),(3,2),(2,3),(3,3),(4,2),(4,3))
+    subnet_sizes = []
+    number_of_subnets_found = []
+    time_fractions = []
+    for name in ids:
+        for size in sizes:
+            filename = "cpp_results/" + name + "_(" + str(size[0]) + "," + str(size[1]) + ").txt"
+            try:
+                with open(filename,'r') as f:
+                    for line in f:
+                        data = line.split()
+                        if data[0] == 'nl-mesu':
+                            nl_mesu_time = float(data[1])
+                            nl_mesu_number = int(data[2])
+                        elif data[0] == 'a-mesu':
+                            a_mesu_time = float(data[1])
+                            a_mesu_number = int(data[2])
+                    assert nl_mesu_number == a_mesu_number
+                    subnet_sizes.append(size)
+                    number_of_subnets_found.append(nl_mesu_number)
+                    time_fractions.append(nl_mesu_time/a_mesu_time)
+            except:
+                pass
+    return subnet_sizes,number_of_subnets_found,time_fractions
 
 
 
