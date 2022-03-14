@@ -531,6 +531,19 @@ void run_edge_file(const std::string& filename, const std::string& savename, con
     }
 }
 
+std::array<int,N_ASPECTS+1> parse_size(const std::string& size_str, const char& delimiter) {
+    auto sstream = std::istringstream(size_str);
+    std::array<int,N_ASPECTS+1> elem_layers;
+    std::string current_elem_layer;
+    int aspect_counter = 0;
+    while (std::getline(sstream,current_elem_layer,delimiter)) {
+        elem_layers[aspect_counter] = std::stoi(current_elem_layer);
+        aspect_counter++;
+    }
+    assert(N_ASPECTS+1==aspect_counter);
+    return elem_layers;
+}
+
 MLnet load_ppi_data(const std::string filename) {
     MLnet mlnet;
     std::ifstream file(filename);
@@ -749,9 +762,13 @@ int main(int argc, char* argv[]) {
     if (argc > 1) {
         test_write_to_argument_file(args[1]);
     }
-    MLnet mlnet = load_edge_file("aaanetworkfiletestwrite.edges");
-    mlnet.print_all_nls();
-    mlnet.print_all_mledges();
+    if (argc > 2) {
+        std::array<int,N_ASPECTS+1> subnet_size = parse_size(args[2],',');
+        for (int ii : subnet_size) {std::cout << ii << "\n";}
+    }
+    //MLnet mlnet = load_edge_file("aaanetworkfiletestwrite.edges");
+    //mlnet.print_all_nls();
+    //mlnet.print_all_mledges();
 }
 
 
