@@ -8,6 +8,7 @@ import matplotlib.colors as colors
 from matplotlib.lines import Line2D
 import numpy as np
 import helpers
+import os
 
 @helpers.persistent
 def compare_running_times(subnet_sizes = [(2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)],er_params=([5,5,5],0.1),total_p=None):
@@ -372,8 +373,40 @@ def plot_run_times_for_cpp():
     plt.tight_layout(pad=0.1)
     plt.savefig('cpp_figures/cpp_relative_run_times.pdf',bbox_inches='tight')
 
+##### Model networks benchmarks for cpp
 
+def create_network_in_cpp_format(net_function,**kwargs):
+    savename = parse_network_savename(net_function,**kwargs)
+    if not os.path.exists(savename):
+        M = net_function(**kwargs)
+        helpers.save_edgelist_cpp_format(M,savename)
 
+def parse_network_savename(net_function,**kwargs):
+    savename = 'cpp_benchmark_networks/'
+    savename = savename + net_function.__name__
+    if kwargs:
+        for kw in sorted(kwargs):
+            savename = savename + '_' + kw + '=' + str(kwargs[kw]).replace(' ', '')
+    return savename
+
+def make_er_nets_changing_aspects_generator():
+    mean_degree = 3
+    n_nodelayers = 1000
+    # 1000 nodelayers : p = 0.003 to get <k> = 3
+    p = mean_degree/float(n_nodelayers) # approx. Actually should be (n-1) but this is nicer.
+    for l in [(40,25),(10,10,10),(8,5,5,5),(2,4,5,5,5)]:
+        return_dict = dict()
+        kws = dict()
+        kws['p'] = p
+        kws['l'] = l
+        return_dict['net_function'] = helpers.er_multilayer_any_aspects_deg_1_or_greater
+        return_dict['kwargs'] = kws
+        return_dict['subnet_size'] = (2,)*len(l)
+        yield return_dict
+
+def run_benchmark_models_cpp(net_kw_subnet_generator):
+    for param_dict in net_kw_subnet_generator:
+        create_network_in_cpp_format(param_dict['net_function'], **param_dict['kwargs'])
 
 
 
