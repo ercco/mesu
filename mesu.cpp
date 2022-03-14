@@ -513,6 +513,24 @@ MLnet load_edge_file(const std::string filename) {
     return mlnet;
 }
 
+void run_edge_file(const std::string& filename, const std::string& savename, const std::array<int,N_ASPECTS+1>& size) {
+    if (not std::filesystem::exists(savename)) {
+        MLnet mlnet = load_edge_file(filename);
+        std::ofstream output(savename);
+        auto start = std::chrono::steady_clock::now();
+        int number_of_subnets = nl_mesu(mlnet,size);
+        auto end = std::chrono::steady_clock::now();
+        auto tdiff = end-start;
+        output << "nl-mesu "<<std::chrono::duration<double> (tdiff).count() << " " << number_of_subnets << "\n";
+        start = std::chrono::steady_clock::now();
+        number_of_subnets = a_mesu(mlnet,size);
+        end = std::chrono::steady_clock::now();
+        tdiff = end-start;
+        output << "a-mesu "<<std::chrono::duration<double> (tdiff).count() << " " << number_of_subnets << "\n";
+        output.close();
+    }
+}
+
 MLnet load_ppi_data(const std::string filename) {
     MLnet mlnet;
     std::ifstream file(filename);
@@ -731,7 +749,7 @@ int main(int argc, char* argv[]) {
     if (argc > 1) {
         test_write_to_argument_file(args[1]);
     }
-    MLnet mlnet = load_edge_file("aaanetworkfile.edges");
+    MLnet mlnet = load_edge_file("aaanetworkfiletestwrite.edges");
     mlnet.print_all_nls();
     mlnet.print_all_mledges();
 }
