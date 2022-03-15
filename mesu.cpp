@@ -480,7 +480,7 @@ int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
 
 // file io -------------------------------------------------------------------------------------------------------------------
 
-MLnet load_edge_file(const std::string filename) {
+MLnet load_edge_file(const std::string& filename) {
     // file format: a0 a1 a2 ... b0 b1 b2 ... (anything after ignored)
     // elementary layers need to be integers
     // only specifying one nodelayer per line adds that nodelayer
