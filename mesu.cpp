@@ -757,18 +757,22 @@ int main(int argc, char* argv[]) {
     */
     //run_ppi_data("multiplex_pp_data/Celegans_Multiplex_Genetic/Dataset/celegans_genetic_multiplex.edges","cpp_results/celegans_(3,2).txt",{3,2});
     //run_all_ppi();
-    std::vector<std::string> args(argv, argv+argc);
-    print_arguments(args);
-    if (argc > 1) {
-        test_write_to_argument_file(args[1]);
-    }
-    if (argc > 2) {
-        std::array<int,N_ASPECTS+1> subnet_size = parse_size(args[2],',');
-        for (int ii : subnet_size) {std::cout << ii << "\n";}
-    }
+    //std::vector<std::string> args(argv, argv+argc);
+    //print_arguments(args);
+    //if (argc > 1) {
+    //    test_write_to_argument_file(args[1]);
+    //}
+    //if (argc > 2) {
+    //    std::array<int,N_ASPECTS+1> subnet_size = parse_size(args[2],',');
+    //    for (int ii : subnet_size) {std::cout << ii << "\n";}
+    //}
     //MLnet mlnet = load_edge_file("aaanetworkfiletestwrite.edges");
     //mlnet.print_all_nls();
     //mlnet.print_all_mledges();
+    // USAGE: mesu.out inputfile outputfile 'size_1,size_2,...,size_d'
+    std::vector<std::string> args(argv, argv+argc);
+    std::array<int,N_ASPECTS+1> size = parse_size(args[3],',');
+    run_edge_file(args[1], args[2], size);
 }
 
 

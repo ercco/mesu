@@ -380,6 +380,7 @@ def create_network_in_cpp_format(net_function,**kwargs):
     if not os.path.exists(savename):
         M = net_function(**kwargs)
         helpers.save_edgelist_cpp_format(M,savename)
+    return savename
 
 def parse_network_savename(net_function,**kwargs):
     savename = 'cpp_benchmark_networks/'
@@ -388,6 +389,11 @@ def parse_network_savename(net_function,**kwargs):
         for kw in sorted(kwargs):
             savename = savename + '_' + kw + '=' + str(kwargs[kw]).replace(' ', '')
     return savename
+
+def parse_output_savename(network_inputfilename, subnet_size):
+    base_name = network_inputfilename.split('/')[1]
+    save_folder = 'cpp_benchmark_results/'
+    return save_folder + base_name + '_' + str(subnet_size).replace(' ','')
 
 def make_er_nets_changing_aspects_generator():
     mean_degree = 3
@@ -406,7 +412,13 @@ def make_er_nets_changing_aspects_generator():
 
 def run_benchmark_models_cpp(net_kw_subnet_generator):
     for param_dict in net_kw_subnet_generator:
-        create_network_in_cpp_format(param_dict['net_function'], **param_dict['kwargs'])
+        inputfile = create_network_in_cpp_format(param_dict['net_function'], **param_dict['kwargs'])
+        outputfile = parse_output_savename(inputfile, param_dict['subnet_size'])
+        n_aspects = len(param_dict['subnet_size']) - 1
+        call_str = './mesu_' + str(n_aspects) + '.out' + ' ' + "'" + inputfile + "'" + ' ' + "'" + outputfile + "'" + ' ' + "'" + str(param_dict['subnet_size']).replace(' ','').strip('()') + "'"
+        if not os.path.exists(outputfile):
+            os.system(call_str)
+            #print(call_str)
 
 
 
