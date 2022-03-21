@@ -69,6 +69,21 @@ def save_edgelist_cpp_format(M,savename):
             nl2 = e[1:(M.aspects+1)*2:2]
             f.write(' '.join([str(x) for x in nl1+nl2])+'\n')
 
+def load_edgelist_in_cpp_format(savename):
+    # only works when all lines are edges
+    aspect_flag = False
+    with open(savename,'r') as f:
+        for line in f:
+            line_list = [int(x) for x in line.strip().split()]
+            if not aspect_flag:
+                n_aspects = int(len(line_list)/2)-1
+                M = pn.MultilayerNetwork(aspects=n_aspects,fullyInterconnected=False)
+                aspect_flag = True
+            nl1 = tuple(line_list[:n_aspects+1])
+            nl2 = tuple(line_list[n_aspects+1:])
+            M[nl1][nl2] = 1
+    return M
+
 def heatmap(data, row_labels, col_labels, xlabel, ylabel, title='', ax=None,
             cbar_kw={}, cbarlabel="", **kwargs):
     """
