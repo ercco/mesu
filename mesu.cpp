@@ -14,7 +14,7 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/connected_components.hpp>
 #include <chrono>                    // for timing
-#define N_ASPECTS 2
+#define N_ASPECTS 1
 
 using namespace boost;
 
@@ -321,6 +321,11 @@ int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
 
 // A-MESU
 
+bool compare_nls(const NL& nl1, const NL& nl2) {
+    // lexicographical comparison for elem layers of nl1 smaller than nl2
+    return nl1.get_el() < nl2.get_el();
+}
+
 // cartesian product copied from subnet, casting into vector copied from valid_nl_mesu; maybe a better way to not duplicate code?
 std::unordered_set<NL> subnet_nodelayers(const MLnet& mlnet, const std::array<std::unordered_set<int>,N_ASPECTS+1>& S) {
     std::unordered_set<NL> sub_nls;
@@ -359,7 +364,7 @@ std::unordered_set<NL> subnet_diff(const MLnet& mlnet, const std::array<std::uno
     return nodelayers_S_prime;
 }
 
-std::unordered_set<NL> subnet_valid_neighbor_nls(const MLnet& mlnet, const std::array<std::unordered_set<int>,N_ASPECTS+1>& S, const Vertex& gamma_index) {
+std::unordered_set<NL> subnet_valid_neighbor_nls(const MLnet& mlnet, const std::array<std::unordered_set<int>,N_ASPECTS+1>& S, const NL& gamma) {
     // cast sets into vectors
     std::unordered_set<NL> sub_nls = subnet_nodelayers(mlnet, S);
     std::unordered_set<NL> valid_neighs;
@@ -371,7 +376,7 @@ std::unordered_set<NL> subnet_valid_neighbor_nls(const MLnet& mlnet, const std::
                 std::array<int,N_ASPECTS+1> neigh_el = neigh.get_el();
                 for (int jj=0; jj<N_ASPECTS+1; jj++) {S_prime[jj].insert(neigh_el[jj]);}
                 for (NL possible_addition : subnet_diff(mlnet,S_prime,S)) {
-                    if (mlnet.get_id_from_nl(possible_addition) < gamma_index) {
+                    if (compare_nls(possible_addition,gamma)) {
                         neigh_indices_valid = false;
                         break;
                     }
@@ -383,9 +388,9 @@ std::unordered_set<NL> subnet_valid_neighbor_nls(const MLnet& mlnet, const std::
     return valid_neighs;
 }
 
-std::array<std::unordered_set<int>,N_ASPECTS+1> subnet_valid_neighbor_elem_layers(const MLnet& mlnet, const std::array<std::unordered_set<int>,N_ASPECTS+1>& S, const Vertex& gamma_index) {
+std::array<std::unordered_set<int>,N_ASPECTS+1> subnet_valid_neighbor_elem_layers(const MLnet& mlnet, const std::array<std::unordered_set<int>,N_ASPECTS+1>& S, const NL& gamma) {
     std::array<std::unordered_set<int>,N_ASPECTS+1> N;
-    for (NL valid_neigh : subnet_valid_neighbor_nls(mlnet,S,gamma_index)) {
+    for (NL valid_neigh : subnet_valid_neighbor_nls(mlnet,S,gamma)) {
         std::array<int,N_ASPECTS+1> neigh_el = valid_neigh.get_el();
         for (int ii=0; ii<N_ASPECTS+1; ii++) {N[ii].insert(neigh_el[ii]);}
     }
@@ -416,14 +421,14 @@ std::vector<int> candidate_extension_indices(const std::array<std::unordered_set
     return candidates;
 }
 
-void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::array<std::unordered_set<int>,N_ASPECTS+1>& S, std::array<std::unordered_set<int>,N_ASPECTS+1>& extension, Vertex& gamma_index, int& total_number) {
+void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::array<std::unordered_set<int>,N_ASPECTS+1>& S, std::array<std::unordered_set<int>,N_ASPECTS+1>& extension, NL& gamma, int& total_number) {
     bool size_ok = true;
     for (int ii=0; ii<N_ASPECTS+1; ii++) {if (S[ii].size()!=size[ii]) {size_ok=false;break;}}
     if (size_ok) {
         if (valid_a_mesu(mlnet, S)) {total_number++;}
         return;
     }
-    std::array<std::unordered_set<int>,N_ASPECTS+1> N = subnet_valid_neighbor_elem_layers(mlnet,S,gamma_index);
+    std::array<std::unordered_set<int>,N_ASPECTS+1> N = subnet_valid_neighbor_elem_layers(mlnet,S,gamma);
     std::vector<int> possible_indices = candidate_extension_indices(extension,S,size);
     while (not possible_indices.empty()) {
         int chosen_index = possible_indices.front();
@@ -441,18 +446,19 @@ void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, s
         for (NL tau : subnet_diff(mlnet,S_prime,S)) {
             for (NL delta : mlnet.get_neighbors(tau)) {
                 if (S_prime_nls.count(delta) < 1) {
+                    // is THIS deepcopy?
                     std::array<std::unordered_set<int>,N_ASPECTS+1> S_prime_with_delta = S_prime;
                     std::array<int,N_ASPECTS+1> delta_els = delta.get_el();
                     for (int jj=0; jj<N_ASPECTS+1; jj++) {S_prime_with_delta[jj].insert(delta_els[jj]);}
                     bool lambda_indices_valid = true;
                     for (NL lambda : subnet_diff(mlnet,S_prime_with_delta,S_prime)) {
-                        if (mlnet.get_id_from_nl(lambda) < gamma_index) {lambda_indices_valid = false;break;}
+                        if (compare_nls(lambda,gamma)) {lambda_indices_valid=false;break;}
                     }
                     if (lambda_indices_valid) {for (int kk=0; kk<N_ASPECTS+1; kk++) {if (N[kk].count(delta_els[kk]) < 1 and S_prime[kk].count(delta_els[kk]) < 1) {extension_prime[kk].insert(delta_els[kk]);}}}
                 }
             }
         }
-        extend_a_mesu(mlnet,size,S_prime,extension_prime,gamma_index,total_number);
+        extend_a_mesu(mlnet,size,S_prime,extension_prime,gamma,total_number);
     }
 }
 
@@ -460,7 +466,7 @@ int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
     int total_number = 0;
     std::pair<std::vector<NL>,std::vector<Vertex>> combined = mlnet.get_all_nls();
     for (int ii=0; ii<combined.first.size(); ii++) {
-        Vertex gamma_index = mlnet.get_id_from_nl(combined.first[ii]);
+        NL gamma = combined.first[ii];
         std::array<std::unordered_set<int>,N_ASPECTS+1> S;
         for (int jj=0; jj<N_ASPECTS+1; jj++) {S[jj].insert(combined.first[ii].get_el()[jj]);}
         std::array<std::unordered_set<int>,N_ASPECTS+1> extension;
@@ -470,10 +476,10 @@ int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
             for (int jj=0; jj<N_ASPECTS+1; jj++) {S_prime[jj].insert(neigh.get_el()[jj]);}
             std::unordered_set<NL> sub_diff = subnet_diff(mlnet,S_prime,S);
             bool lambda_indices_valid = true;
-            for (NL lambda : sub_diff) {if (mlnet.get_id_from_nl(lambda) < gamma_index) {lambda_indices_valid=false;break;}}
+            for (NL lambda : sub_diff) {if (compare_nls(lambda,gamma)) {lambda_indices_valid=false;break;}}
             if (lambda_indices_valid) {for (int jj=0; jj<N_ASPECTS+1; jj++) {int el=neigh.get_el()[jj]; if (S[jj].count(el)<1) {extension[jj].insert(el);}}}
         }
-        extend_a_mesu(mlnet,size,S,extension,gamma_index,total_number);
+        extend_a_mesu(mlnet,size,S,extension,gamma,total_number);
     }
     return total_number;
 }
@@ -770,9 +776,15 @@ int main(int argc, char* argv[]) {
     //mlnet.print_all_nls();
     //mlnet.print_all_mledges();
     // USAGE: mesu.out inputfile outputfile 'size_1,size_2,...,size_d'
-    std::vector<std::string> args(argv, argv+argc);
-    std::array<int,N_ASPECTS+1> size = parse_size(args[3],',');
-    run_edge_file(args[1], args[2], size);
+    
+    //std::vector<std::string> args(argv, argv+argc);
+    //std::array<int,N_ASPECTS+1> size = parse_size(args[3],',');
+    //run_edge_file(args[1], args[2], size);
+    
+    std::string problem_file = "cpp_benchmark_networks/er_multilayer_any_aspects_deg_1_or_greater_l=(40,25)_p=0.02";
+    std::string problem_savename = "problem_file_rerun";
+    std::array<int,N_ASPECTS+1> size = parse_size("2,2",',');
+    run_edge_file(problem_file, problem_savename, size);
 }
 
 
