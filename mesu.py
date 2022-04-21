@@ -87,13 +87,14 @@ def _multilayer_extend_subgraph(M,s,S,extension,t,nl,output_function,p):
             S_prime = copy.deepcopy(S)
             S_prime[chosen_index].add(l)
             new_nodelayers = {new_nl for new_nl in itertools.product(*S_prime) if new_nl in t}
-            dummy_nl = tuple(l if ii==chosen_index else None for ii in range(len(nl)))
-            for addition in _additions(S,dummy_nl,t):
-                for neighbor in M[addition]:
-                    if neighbor not in new_nodelayers:
-                        if all(t[neighbor_addition] > t[nl] for neighbor_addition in _additions(S_prime,neighbor,t)):
-                            _add_to_extension(extension_prime,neighbor,S_prime,N)
-            _multilayer_extend_subgraph(M,s,S_prime,extension_prime,t,nl,output_function,p)
+            if all(t[S_prime_nl] >= t[nl] for S_prime_nl in new_nodelayers):
+                dummy_nl = tuple(l if ii==chosen_index else None for ii in range(len(nl)))
+                for addition in _additions(S,dummy_nl,t):
+                    for neighbor in M[addition]:
+                        if neighbor not in new_nodelayers:
+                            if all(t[neighbor_addition] > t[nl] for neighbor_addition in _additions(S_prime,neighbor,t)):
+                                _add_to_extension(extension_prime,neighbor,S_prime,N)
+                _multilayer_extend_subgraph(M,s,S_prime,extension_prime,t,nl,output_function,p)
     return
 
 ##### Helpers #####
