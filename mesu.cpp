@@ -14,7 +14,7 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/connected_components.hpp>
 #include <chrono>                    // for timing
-#define N_ASPECTS 1
+#define N_ASPECTS 3
 
 using namespace boost;
 
@@ -443,22 +443,28 @@ void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, s
         std::unordered_set<NL> S_prime_nls = subnet_nodelayers(mlnet,S_prime);
         // make new possible_indices
         possible_indices = candidate_extension_indices(extension,S,size);
-        for (NL tau : subnet_diff(mlnet,S_prime,S)) {
-            for (NL delta : mlnet.get_neighbors(tau)) {
-                if (S_prime_nls.count(delta) < 1) {
-                    // is THIS deepcopy?
-                    std::array<std::unordered_set<int>,N_ASPECTS+1> S_prime_with_delta = S_prime;
-                    std::array<int,N_ASPECTS+1> delta_els = delta.get_el();
-                    for (int jj=0; jj<N_ASPECTS+1; jj++) {S_prime_with_delta[jj].insert(delta_els[jj]);}
-                    bool lambda_indices_valid = true;
-                    for (NL lambda : subnet_diff(mlnet,S_prime_with_delta,S_prime)) {
-                        if (compare_nls(lambda,gamma)) {lambda_indices_valid=false;break;}
+        bool S_prime_valid = true;
+        for (NL beta : S_prime_nls) {
+            if (compare_nls(beta,gamma)) {S_prime_valid=false;break;}
+        }
+        if (S_prime_valid) {
+            for (NL tau : subnet_diff(mlnet,S_prime,S)) {
+                for (NL delta : mlnet.get_neighbors(tau)) {
+                    if (S_prime_nls.count(delta) < 1) {
+                        // is THIS deepcopy?
+                        std::array<std::unordered_set<int>,N_ASPECTS+1> S_prime_with_delta = S_prime;
+                        std::array<int,N_ASPECTS+1> delta_els = delta.get_el();
+                        for (int jj=0; jj<N_ASPECTS+1; jj++) {S_prime_with_delta[jj].insert(delta_els[jj]);}
+                        bool lambda_indices_valid = true;
+                        for (NL lambda : subnet_diff(mlnet,S_prime_with_delta,S_prime)) {
+                            if (compare_nls(lambda,gamma)) {lambda_indices_valid=false;break;}
+                        }
+                        if (lambda_indices_valid) {for (int kk=0; kk<N_ASPECTS+1; kk++) {if (N[kk].count(delta_els[kk]) < 1 and S_prime[kk].count(delta_els[kk]) < 1) {extension_prime[kk].insert(delta_els[kk]);}}}
                     }
-                    if (lambda_indices_valid) {for (int kk=0; kk<N_ASPECTS+1; kk++) {if (N[kk].count(delta_els[kk]) < 1 and S_prime[kk].count(delta_els[kk]) < 1) {extension_prime[kk].insert(delta_els[kk]);}}}
                 }
             }
+            extend_a_mesu(mlnet,size,S_prime,extension_prime,gamma,total_number);
         }
-        extend_a_mesu(mlnet,size,S_prime,extension_prime,gamma,total_number);
     }
 }
 
@@ -780,10 +786,15 @@ int main(int argc, char* argv[]) {
     //std::vector<std::string> args(argv, argv+argc);
     //std::array<int,N_ASPECTS+1> size = parse_size(args[3],',');
     //run_edge_file(args[1], args[2], size);
-    
+    /*
     std::string problem_file = "cpp_benchmark_networks/er_multilayer_any_aspects_deg_1_or_greater_l=(40,25)_p=0.02";
     std::string problem_savename = "problem_file_rerun";
     std::array<int,N_ASPECTS+1> size = parse_size("2,2",',');
+    run_edge_file(problem_file, problem_savename, size);
+    */
+    std::string problem_file = "square_edge_file";
+    std::string problem_savename = "square_edge_result";
+    std::array<int,N_ASPECTS+1> size = parse_size("2,2,2,2",',');
     run_edge_file(problem_file, problem_savename, size);
 }
 
