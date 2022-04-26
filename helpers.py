@@ -79,7 +79,7 @@ def save_edgelist_cpp_format(M,savename,include_isolated_nls=False):
                     f.write(' '.join([str(y) for y in nl])+'\n')
 
 def load_edgelist_in_cpp_format(savename):
-    # only works when all lines are edges
+    # only works when first line is an edge (has two nodelayers)
     aspect_flag = False
     with open(savename,'r') as f:
         for line in f:
@@ -90,7 +90,10 @@ def load_edgelist_in_cpp_format(savename):
                 aspect_flag = True
             nl1 = tuple(line_list[:n_aspects+1])
             nl2 = tuple(line_list[n_aspects+1:])
-            M[nl1][nl2] = 1
+            if nl2:
+                M[nl1][nl2] = 1
+            else:
+                M.add_node(nl1[0],layer=nl1[1:])
     return M
 
 def heatmap(data, row_labels, col_labels, xlabel, ylabel, title='', ax=None,
