@@ -14,7 +14,7 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/connected_components.hpp>
 #include <chrono>                    // for timing
-#define N_ASPECTS 3
+#define N_ASPECTS 1
 
 using namespace boost;
 
@@ -781,21 +781,22 @@ int main(int argc, char* argv[]) {
     //MLnet mlnet = load_edge_file("aaanetworkfiletestwrite.edges");
     //mlnet.print_all_nls();
     //mlnet.print_all_mledges();
-    // USAGE: mesu.out inputfile outputfile 'size_1,size_2,...,size_d'
     
-    //std::vector<std::string> args(argv, argv+argc);
-    //std::array<int,N_ASPECTS+1> size = parse_size(args[3],',');
-    //run_edge_file(args[1], args[2], size);
+    // USAGE: mesu.out inputfile outputfile 'size_1,size_2,...,size_d'
+    std::vector<std::string> args(argv, argv+argc);
+    std::array<int,N_ASPECTS+1> size = parse_size(args[3],',');
+    run_edge_file(args[1], args[2], size);
     /*
     std::string problem_file = "cpp_benchmark_networks/er_multilayer_any_aspects_deg_1_or_greater_l=(40,25)_p=0.02";
     std::string problem_savename = "problem_file_rerun";
     std::array<int,N_ASPECTS+1> size = parse_size("2,2",',');
     run_edge_file(problem_file, problem_savename, size);
-    */
+    
     std::string problem_file = "square_edge_file";
     std::string problem_savename = "square_edge_result";
     std::array<int,N_ASPECTS+1> size = parse_size("2,2,2,2",',');
     run_edge_file(problem_file, problem_savename, size);
+    */
 }
 
 
