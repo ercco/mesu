@@ -4,7 +4,7 @@
 #SBATCH --output=cpp_sanity_check.out
 #SBATCH -p batch-csl,batch-skl
 
-cd /scratch/cs/networks/nurmit7/MESU/mesu/
+cd /scratch/cs/networks/nurmit7/mesu/
 echo "here 1"
 module load anaconda
 echo "here 2"
