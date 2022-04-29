@@ -82,7 +82,7 @@ def run_exhaustive_search(n_elem_layer_list,result_dir,save_every=10**5):
 if __name__ == '__main__':
     n_elem_layer_list = [int(x) for x in sys.argv[1].strip().split(',')]
     result_dir = sys.argv[2]
-    if len(sys.argv > 3):
+    if len(sys.argv) > 3:
         save_every = int(sys.argv[3])
     else:
         save_every = 10**5
