@@ -63,20 +63,20 @@ def run_exhaustive_search(n_elem_layer_list,result_dir,save_every=10**5):
             if res[0][1] != res[1][1]:
                 anomaly_list.append((m,subnet_size,res))
         if ii == current_block_end:
-            with open(result_dir+str(current_block_start)+'_'+str(current_block_end),'w') as f:
+            with open(result_dir+str(current_block_start)+'_'+str(current_block_end),'wb') as f:
                 pickle.dump(res_list,f)
             if anomaly_list:
-                with open(result_dir+str(current_block_start)+'_'+str(current_block_end)+'_anomaly','w') as g:
+                with open(result_dir+str(current_block_start)+'_'+str(current_block_end)+'_anomaly','wb') as g:
                     pickle.dump(anomaly_list,g)
             current_block_start = current_block_end + 1
             current_block_end = current_block_end + save_every
             res_list = []
             anomaly_list = []
         ii = ii+1
-    with open(result_dir+str(current_block_start)+'_-1','w') as h:
+    with open(result_dir+str(current_block_start)+'_-1','wb') as h:
         pickle.dump(res_list,h)
     if anomaly_list:
-        with open(result_dir+str(current_block_start)+'_-1_anomaly','w') as j:
+        with open(result_dir+str(current_block_start)+'_-1_anomaly','wb') as j:
             pickle.dump(anomaly_list,j)
 
 if __name__ == '__main__':
