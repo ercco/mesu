@@ -79,6 +79,26 @@ def run_exhaustive_search(n_elem_layer_list,result_dir,save_every=10**5):
         with open(result_dir+str(current_block_start)+'_-1_anomaly','wb') as j:
             pickle.dump(anomaly_list,j)
 
+def summarize_results(result_dir,only_binary=False):
+    problem_list = []
+    for fname in sorted(os.listdir(result_dir)):
+        if 'anomaly' in fname:
+            print('Anomaly found (file ' + fname + ')')
+        else:
+            with open(fname,'rb') as f:
+                res_list = pickle.load(f)
+            for r in res_list:
+                if r[0] != r[1]:
+                    problem_list.append(fname)
+                if only_binary and not (r[0] == 0 or r[0] == 1):
+                    print('Value other than 0 or 1 encountered at ' + fname)
+                    problem_list.append(fname)
+    if problem_list:
+        print('Problems encountered, see return value')
+    else:
+        print('No problems encountered')
+    return problem_list
+
 if __name__ == '__main__':
     n_elem_layer_list = [int(x) for x in sys.argv[1].strip().split(',')]
     result_dir = sys.argv[2]
