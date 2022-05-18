@@ -85,7 +85,7 @@ def summarize_results(result_dir,only_binary=False):
         if 'anomaly' in fname:
             print('Anomaly found (file ' + fname + ')')
         else:
-            with open(fname,'rb') as f:
+            with open(result_dir + fname,'rb') as f:
                 res_list = pickle.load(f)
             for r in res_list:
                 if r[0] != r[1]:
