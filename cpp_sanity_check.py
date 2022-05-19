@@ -81,6 +81,7 @@ def run_exhaustive_search(n_elem_layer_list,result_dir,save_every=10**5):
 
 def summarize_results(result_dir,only_binary=False):
     problem_list = []
+    n_total_found = 0
     for fname in sorted(os.listdir(result_dir)):
         if 'anomaly' in fname:
             print('Anomaly found (file ' + fname + ')')
@@ -93,10 +94,12 @@ def summarize_results(result_dir,only_binary=False):
                 if only_binary and not (r[0] == 0 or r[0] == 1):
                     print('Value other than 0 or 1 encountered at ' + fname)
                     problem_list.append(fname)
+                n_total_found = n_total_found + 1
     if problem_list:
         print('Problems encountered, see return value')
     else:
         print('No problems encountered')
+    print(str(n_total_found) + ' subnets iterated through')
     return problem_list
 
 if __name__ == '__main__':
