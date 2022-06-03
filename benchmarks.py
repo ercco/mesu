@@ -410,6 +410,24 @@ def make_er_nets_changing_aspects_generator():
         return_dict['subnet_size'] = (2,)*len(l)
         yield return_dict
 
+def make_geo_mplex_generator():
+    # increase nlayers, average degree
+    mean_degree = 3
+    nnodes = 1000
+    nlayers = [3,4,5,6,7,8,9,10]
+    subnet_sizes = [(2,2),(2,3),(3,3)]
+    for nl in nlayers:
+        for subnet_size in subnet_sizes:
+            return_dict = dict()
+            kws = dict()
+            kws['n'] = nnodes
+            kws['edges'] = [int((nnodes*mean_degree)/2)]*nl
+            kws['couplings'] = 'categorical'
+            return_dict['net_function'] = helpers.pn.models.geo
+            return_dict['kwargs'] = kws
+            return_dict['subnet_size'] = subnet_size
+            yield return_dict
+
 def run_benchmark_models_cpp(net_kw_subnet_generator):
     for param_dict in net_kw_subnet_generator:
         inputfile = create_network_in_cpp_format(param_dict['net_function'], **param_dict['kwargs'])
