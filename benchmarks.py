@@ -9,6 +9,7 @@ from matplotlib.lines import Line2D
 import numpy as np
 import helpers
 import os
+from cpp_sanity_check import read_temp_file_res
 
 @helpers.persistent
 def compare_running_times(subnet_sizes = [(2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)],er_params=([5,5,5],0.1),total_p=None):
@@ -438,9 +439,44 @@ def run_benchmark_models_cpp(net_kw_subnet_generator):
             os.system(call_str)
             #print(call_str)
 
+##### Model network benchmark plotting for cpp
 
+def plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,x_axis_label,y_axis_label,title,plot_to_ax=None):
+    if plot_to_ax is None:
+        fig,ax = plt.subplots()
+    else:
+        ax = plot_to_ax
+    for ii in range(len(individual_y_axes)):
+        ax.plot(shared_x_axis,individual_y_axes[ii],formats[ii],label=line_labels[ii])
+    ax.set_xlabel(x_axis_label)
+    ax.set_ylabel(y_axis_label)
+    ax.set_title(title)
+    return fig,ax
 
-
+def plot_geo_relative_vs_net_size():
+    savename = 'cpp_benchmark_figures/geo_mplex.pdf'
+    net_kw_subnet_generator = make_geo_mplex_generator()
+    shared_x_axis = [3,4,5,6,7,8,9,10]
+    res_dict = dict()
+    for param_dict in net_kw_subnet_generator:
+        nl = len(param_dict['kwargs']['edges'])
+        outputfile = parse_output_savename(parse_network_savename(param_dict['net_function'],**param_dict['kwargs']),param_dict['subnet_size'])
+        nl_mesu_res,a_mesu_res = read_temp_file_res(outputfile)
+        assert(nl_mesu_res[1] == a_mesu_res[1])
+        # default value is list of -1's with length len(shared_x_axis). Insert into correct place according to nl
+        # value: t(a-mesu)/t(nl-mesu)
+        res_dict.setdefault(param_dict['subnet_size'],[-1]*len(shared_x_axis))[shared_x_axis.index(nl)] = a_mesu_res[0]/nl_mesu_res[0]
+    individual_y_axes = []
+    formats = []
+    line_labels = []
+    for kk in sorted(res_dict.keys()):
+        individual_y_axes.append(res_dict[kk])
+        formats.append('-')
+        line_labels.append(str(kk))
+    fig,ax = plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,'Number of layers',r'$t_{a-mesu}/t_{nl-mesu}$','GEO')
+    ax.legend()
+    ax.plot(shared_x_axis,[1]*len(shared_x_axis),'--k')
+    fig.savefig(savename)
 
 
 
