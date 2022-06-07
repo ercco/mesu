@@ -429,6 +429,41 @@ def make_geo_mplex_generator():
             return_dict['subnet_size'] = subnet_size
             yield return_dict
 
+def make_er_mlayer_single_aspect_generator():
+    mean_degree = 3
+    nlayers = [3,4,5,6,7,8,9,10]
+    subnet_sizes = [(2,2),(3,2),(3,3)]
+    for nl in nlayers:
+        for subnet_size in subnet_sizes:
+            return_dict = dict()
+            kws = dict()
+            kws['l'] = (1000,nl)
+            # p such that average degree is mean_degree (coupling edges also random)
+            # kws['p'] = mean_degree/float(1000*nl)
+            # p such that average intralayer degree is mean_degree, and additionally there are other edges
+            kws['p'] = mean_degree/1000.0
+            return_dict['net_function'] = helpers.er_multilayer_any_aspects_deg_1_or_greater
+            return_dict['kwargs'] = kws
+            return_dict['subnet_size'] = subnet_size
+            yield return_dict
+
+def make_er_mplex_generator():
+    # use pymnet with number of edges fixed
+    mean_degree = 3
+    nnodes = 1000
+    nlayers = [3,4,5,6,7,8,9,10]
+    subnet_sizes = [(2,2),(3,2),(3,3)]
+    for nl in nlayers:
+        for subnet_size in subnet_sizes:
+            return_dict = dict()
+            kws = dict()
+            kws['n'] = nnodes
+            kws['edges'] = [int((nnodes*mean_degree)/2)]*nl
+            return_dict['net_function'] = helpers.pn.models.er
+            return_dict['kwargs'] = kws
+            return_dict['subnet_size'] = subnet_size
+            yield return_dict
+
 def run_benchmark_models_cpp(net_kw_subnet_generator):
     for param_dict in net_kw_subnet_generator:
         inputfile = create_network_in_cpp_format(param_dict['net_function'], **param_dict['kwargs'])
