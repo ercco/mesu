@@ -416,7 +416,7 @@ def make_geo_mplex_generator():
     mean_degree = 3
     nnodes = 1000
     nlayers = [3,4,5,6,7,8,9,10]
-    subnet_sizes = [(2,2),(2,3),(3,3)]
+    subnet_sizes = [(2,2),(2,3),(3,2),(3,3)]
     for nl in nlayers:
         for subnet_size in subnet_sizes:
             return_dict = dict()
@@ -432,7 +432,7 @@ def make_geo_mplex_generator():
 def make_er_mlayer_single_aspect_generator():
     mean_degree = 3
     nlayers = [3,4,5,6,7,8,9,10]
-    subnet_sizes = [(2,2),(3,2),(3,3)]
+    subnet_sizes = [(2,2),(2,3),(3,2),(3,3)]
     for nl in nlayers:
         for subnet_size in subnet_sizes:
             return_dict = dict()
@@ -452,7 +452,7 @@ def make_er_mplex_generator():
     mean_degree = 3
     nnodes = 1000
     nlayers = [3,4,5,6,7,8,9,10]
-    subnet_sizes = [(2,2),(3,2),(3,3)]
+    subnet_sizes = [(2,2),(2,3),(3,2),(3,3)]
     for nl in nlayers:
         for subnet_size in subnet_sizes:
             return_dict = dict()
@@ -488,9 +488,7 @@ def plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,x_ax
     ax.set_title(title)
     return fig,ax
 
-def plot_geo_relative_vs_net_size():
-    savename = 'cpp_benchmark_figures/geo_mplex.pdf'
-    net_kw_subnet_generator = make_geo_mplex_generator()
+def plot_mplex_relative_vs_net_size(net_kw_subnet_generator=make_geo_mplex_generator(),savename='cpp_benchmark_figures/geo_mplex.pdf',title='GEO'):
     shared_x_axis = [3,4,5,6,7,8,9,10]
     res_dict = dict()
     for param_dict in net_kw_subnet_generator:
@@ -508,7 +506,7 @@ def plot_geo_relative_vs_net_size():
         individual_y_axes.append(res_dict[kk])
         formats.append('-')
         line_labels.append(str(kk))
-    fig,ax = plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,'Number of layers',r'$t_{a-mesu}/t_{nl-mesu}$','GEO')
+    fig,ax = plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,'Number of layers',r'$t_{a-mesu}/t_{nl-mesu}$',title)
     ax.legend()
     ax.plot(shared_x_axis,[1]*len(shared_x_axis),'--k')
     fig.savefig(savename)
