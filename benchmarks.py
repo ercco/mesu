@@ -415,7 +415,7 @@ def make_geo_mplex_generator():
     # increase nlayers, average degree
     mean_degree = 3
     nnodes = 1000
-    nlayers = [3,4,5,6,7,8,9,10]
+    nlayers = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
     subnet_sizes = [(2,2),(2,3),(3,2),(3,3)]
     for nl in nlayers:
         for subnet_size in subnet_sizes:
@@ -451,7 +451,7 @@ def make_er_mplex_generator():
     # use pymnet with number of edges fixed
     mean_degree = 3
     nnodes = 1000
-    nlayers = [3,4,5,6,7,8,9,10]
+    nlayers = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
     subnet_sizes = [(2,2),(2,3),(3,2),(3,3)]
     for nl in nlayers:
         for subnet_size in subnet_sizes:
@@ -486,10 +486,11 @@ def plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,x_ax
     ax.set_xlabel(x_axis_label)
     ax.set_ylabel(y_axis_label)
     ax.set_title(title)
+    ax.set_xticks(shared_x_axis)
     return fig,ax
 
 def plot_mplex_relative_vs_net_size(net_kw_subnet_generator=make_geo_mplex_generator(),savename='cpp_benchmark_figures/geo_mplex.pdf',title='GEO'):
-    shared_x_axis = [3,4,5,6,7,8,9,10]
+    shared_x_axis = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
     res_dict = dict()
     for param_dict in net_kw_subnet_generator:
         nl = len(param_dict['kwargs']['edges'])
