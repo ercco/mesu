@@ -6,9 +6,11 @@ import os
 import pickle
 import itertools
 import pymnet as pn
+import networkx
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
+import math
 
 class persistent(object):
     def __init__(self,function):
@@ -49,6 +51,48 @@ def er_multilayer_any_aspects_deg_1_or_greater(l=[5,5,5],p=0.05):
             if random.random() < p:
                 M[possible_nls[ii]][possible_nls[jj]] = 1
     return M
+
+def geo_multilayer_any_aspects(l,edges_in_layers,edges_between_layers):
+    # l : number of elementary layers in each aspect
+    # edges_in_layers : int with approximate number of edges within layers
+    # edges_between_layers : int with approximate number of edges between each pair of layers
+    M = pn.MultilayerNetwork(aspects=len(l)-1,directed=False,fullyInterconnected=True)
+    n = l[0]
+    pos = None
+    for ii,layers_in_aspect in enumerate(l):
+        for jj in range(layers_in_aspect):
+            M.add_layer(layer=jj,aspect=ii)
+    layers = list(M.iter_layers()) # for getting all pairs later
+    for layer in layers:
+        netX,pos = get_single_geo_instance(n,edges_in_layers,pos)
+        for node in netX.nodes:
+            M.add_node(node,layer=layer)
+        for e in netX.edges:
+            # add edges between nodelayers inside layer
+            node1 = e[0]
+            node2 = e[1]
+            medge = [node1, node2, *layer]
+            M[tuple(medge)] = 1
+    for layer_pair in itertools.combinations(layers, 2):
+        netX,pos = get_single_geo_instance(n,edges_between_layers,pos)
+        for e in netX.edges:
+            # add edges between nodelayers between layers
+            iledge = []
+            node1 = e[0]
+            node2 = e[1]
+            iledge.append(node1)
+            iledge.append(node2)
+            for ii in range(len(layer_pair[0])):
+                iledge.append(layer_pair[0][ii])
+                iledge.append(layer_pair[1][ii])
+            M[tuple(iledge)] = 1
+    return M
+
+def get_single_geo_instance(n,n_edges,pos):
+    r = math.sqrt(2.2 * float(n_edges) / ((n - 1.0) * n) / math.pi)
+    netX = networkx.soft_random_geometric_graph(n, r, pos=pos)
+    pos = networkx.get_node_attributes(netX, 'pos')
+    return netX, pos
 
 def load_edgelist(fname):
     M = pn.MultiplexNetwork(couplings='categorical',directed=False,fullyInterconnected=False)
