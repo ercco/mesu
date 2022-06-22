@@ -429,6 +429,27 @@ def make_geo_mplex_generator():
             return_dict['subnet_size'] = subnet_size
             yield return_dict
 
+def make_geo_mlayer_generator(layers_in_second_aspect=1):
+    mean_degree_inside = 3
+    mean_degree_between = 2
+    nnodes = 1000
+    nlayers_in_first_aspect = [3,4,5,6,7,8,9,10]
+    if layers_in_second_aspect > 1:
+        subnet_sizes = [(2,2,2),(2,3,2),(3,2,2),(3,3,2)]
+    elif layers_in_second_aspect == 1:
+        subnet_sizes = [(2,2,1),(2,3,1),(3,2,1),(3,3,1)]
+    for nl_first in nlayers_in_first_aspect:
+        for subnet_size in subnet_sizes:
+            return_dict = dict()
+            kws = dict()
+            kws['l'] = (nnodes,nl_first,layers_in_second_aspect)
+            kws['edges_in_layers'] = int((nnodes*mean_degree_inside)/2)
+            kws['edges_between_layers'] = int((nnodes*mean_degree_between)/2)
+            return_dict['net_function'] = helpers.geo_multilayer_any_aspects
+            return_dict['kwargs'] = kws
+            return_dict['subnet_size'] = subnet_size
+            yield return_dict
+
 def make_er_mlayer_single_aspect_generator():
     mean_degree = 3
     nlayers = [3,4,5,6,7,8,9,10]
