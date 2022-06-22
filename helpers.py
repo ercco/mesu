@@ -94,6 +94,23 @@ def get_single_geo_instance(n,n_edges,pos):
     pos = networkx.get_node_attributes(netX, 'pos')
     return netX, pos
 
+def get_edge_information(M):
+    edge_info = dict()
+    for layer in M.iter_layers():
+        edge_info[layer] = 0
+    for layer_pair in itertools.combinations(M.iter_layers(),2):
+        unordered_pair = frozenset(layer_pair)
+        edge_info[unordered_pair] = 0
+    for e in M.edges:
+        layer_part = e[2:-1]
+        layer1 = tuple(layer_part[0::2])
+        layer2 = tuple(layer_part[1::2])
+        if layer1 == layer2:
+            edge_info[layer1] = edge_info[layer1] + 1
+        else:
+            edge_info[frozenset((layer1,layer2))] = edge_info[frozenset((layer1,layer2))] + 1
+    return edge_info
+
 def load_edgelist(fname):
     M = pn.MultiplexNetwork(couplings='categorical',directed=False,fullyInterconnected=False)
     with open(fname,'r') as f:
