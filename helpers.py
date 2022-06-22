@@ -97,7 +97,10 @@ def get_single_geo_instance(n,n_edges,pos):
 def get_edge_information(M):
     edge_info = dict()
     for layer in M.iter_layers():
-        edge_info[layer] = 0
+        if isinstance(layer,int):
+            edge_info[(layer,)] = 0
+        else:
+            edge_info[layer] = 0
     for layer_pair in itertools.combinations(M.iter_layers(),2):
         unordered_pair = frozenset(layer_pair)
         edge_info[unordered_pair] = 0
