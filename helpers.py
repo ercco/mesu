@@ -53,6 +53,9 @@ def er_multilayer_any_aspects_deg_1_or_greater(l=[5,5,5],p=0.05):
     return M
 
 def geo_multilayer_any_aspects(l,edges_in_layers,edges_between_layers):
+    # TODO: currently does not work with 1 aspect, since layers are ints instead of tuples
+    # tempfix: use 1 as number of elementary layers in second aspect
+    #
     # l : number of elementary layers in each aspect
     # edges_in_layers : int with approximate number of edges within layers
     # edges_between_layers : int with approximate number of edges between each pair of layers
