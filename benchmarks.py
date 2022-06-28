@@ -510,17 +510,27 @@ def plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,x_ax
     ax.set_xticks(shared_x_axis)
     return fig,ax
 
-def plot_mplex_relative_vs_net_size(net_kw_subnet_generator=make_geo_mplex_generator(),savename='cpp_benchmark_figures/geo_mplex.pdf',title='GEO'):
+def plot_mplex_relative_vs_net_size(net_kw_subnet_generator=make_geo_mplex_generator(),savename='cpp_benchmark_figures/geo_mplex.pdf',title='GEO mplex'):
     shared_x_axis = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    #shared_x_axis = [3,4,5,6,7,8,9,10]
     res_dict = dict()
     for param_dict in net_kw_subnet_generator:
-        nl = len(param_dict['kwargs']['edges'])
+        try:
+            nl = len(param_dict['kwargs']['edges'])
+        except:
+            nl = param_dict['kwargs']['l'][1] # number of layers in first aspect
         outputfile = parse_output_savename(parse_network_savename(param_dict['net_function'],**param_dict['kwargs']),param_dict['subnet_size'])
-        nl_mesu_res,a_mesu_res = read_temp_file_res(outputfile)
+        try:
+            nl_mesu_res,a_mesu_res = read_temp_file_res(outputfile)
+        except:
+            nl_mesu_res,a_mesu_res = ((None,None),(None,None))
         assert(nl_mesu_res[1] == a_mesu_res[1])
         # default value is list of -1's with length len(shared_x_axis). Insert into correct place according to nl
         # value: t(a-mesu)/t(nl-mesu)
-        res_dict.setdefault(param_dict['subnet_size'],[-1]*len(shared_x_axis))[shared_x_axis.index(nl)] = a_mesu_res[0]/nl_mesu_res[0]
+        try:
+            res_dict.setdefault(param_dict['subnet_size'],[-1]*len(shared_x_axis))[shared_x_axis.index(nl)] = a_mesu_res[0]/nl_mesu_res[0]
+        except:
+            res_dict.setdefault(param_dict['subnet_size'],[-1]*len(shared_x_axis))[shared_x_axis.index(nl)] = None
     individual_y_axes = []
     formats = []
     line_labels = []
@@ -529,6 +539,7 @@ def plot_mplex_relative_vs_net_size(net_kw_subnet_generator=make_geo_mplex_gener
         formats.append('-')
         line_labels.append(str(kk))
     fig,ax = plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,'Number of layers',r'$t_{a-mesu}/t_{nl-mesu}$',title)
+    ax.set_yscale('log')
     ax.legend()
     ax.plot(shared_x_axis,[1]*len(shared_x_axis),'--k')
     fig.savefig(savename)
