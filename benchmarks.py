@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from matplotlib.lines import Line2D
 import numpy as np
+import collections
 import helpers
 import os
 from cpp_sanity_check import read_temp_file_res
@@ -320,7 +321,9 @@ def run_times_for_example_data():
         plt.show()
     plt.close('all')
 
-def run_times_for_cpp():
+def run_times_for_cpp(return_run_times_in_dict=False):
+    if return_run_times_in_dict:
+        d = collections.defaultdict(dict)
     ids = ("arabidopsis",
            "bos",
            "candida",
@@ -354,9 +357,14 @@ def run_times_for_cpp():
                     subnet_sizes.append(str(size))
                     number_of_subnets_found.append(nl_mesu_number)
                     time_fractions.append(a_mesu_time/nl_mesu_time)
+                    if return_run_times_in_dict:
+                        d[name][size] = (nl_mesu_time,a_mesu_time,nl_mesu_number)
             except:
                 pass
-    return subnet_sizes,number_of_subnets_found,time_fractions
+    if return_run_times_in_dict:
+        return d
+    else:
+        return subnet_sizes,number_of_subnets_found,time_fractions
 
 def plot_run_times_for_cpp():
     subnet_sizes,number_of_subnets_found,time_fractions = run_times_for_cpp()
