@@ -345,6 +345,7 @@ def run_times_for_cpp(return_run_times_in_dict=False):
             filename = "cpp_results/" + name + "_(" + str(size[0]) + "," + str(size[1]) + ").txt"
             try:
                 with open(filename,'r') as f:
+                    file_is_empty = True
                     for line in f:
                         data = line.split()
                         if data[0] == 'nl-mesu':
@@ -353,6 +354,9 @@ def run_times_for_cpp(return_run_times_in_dict=False):
                         elif data[0] == 'a-mesu':
                             a_mesu_time = float(data[1])
                             a_mesu_number = int(data[2])
+                        file_is_empty = False
+                    if file_is_empty:
+                        raise Exception # go to except block
                     assert nl_mesu_number == a_mesu_number
                     subnet_sizes.append(str(size))
                     number_of_subnets_found.append(nl_mesu_number)
@@ -384,6 +388,45 @@ def plot_run_times_for_cpp():
     plt.title('C++ relative running times for ppi data')
     plt.tight_layout(pad=0.1)
     plt.savefig('cpp_figures/cpp_relative_run_times.pdf',bbox_inches='tight')
+
+def plot_absolute_running_times_for_cpp():
+    savename = 'cpp_figures/absolute_running_times.pdf'
+    ids = ("arabidopsis",
+           "bos",
+           "candida",
+           "celegans",
+           "drosophila",
+           "gallus",
+           "mus",
+           "plasmodium",
+           "rattus",
+           "sacchcere",
+           "sacchpomb"
+           )
+    # change order of sizes
+    sizes = ((2,2),(2,3),(3,2),(3,3),(4,2),(4,3))
+    colors = ["#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd", "#ccebc5"]
+    d = run_times_for_cpp(return_run_times_in_dict=True)
+    shared_x_axis = [str(size) for size in sizes]
+    individual_y_axes_nl_mesu = []
+    individual_y_axes_a_mesu = []
+    for name in ids:
+        curr_ax_nl = []
+        curr_ax_a = []
+        for size in sizes:
+            curr_ax_nl.append(d[name][size][0] if d[name][size] else None)
+            curr_ax_a.append(d[name][size][1] if d[name][size] else None)
+        individual_y_axes_nl_mesu.append(curr_ax_nl)
+        individual_y_axes_a_mesu.append(curr_ax_a)
+    fig,ax = plot_group_of_lines(shared_x_axis, individual_y_axes_nl_mesu, ['-']*len(individual_y_axes_nl_mesu), ids, 'Subnet size', 'Running time (s)', 'Protein-protein interaction multiplex networks',colors=colors)
+    plot_group_of_lines(shared_x_axis, individual_y_axes_a_mesu, ['--']*len(individual_y_axes_a_mesu), ids, 'Subnet size', 'Running time (s)', 'Protein-protein interaction multiplex networks',plot_to_ax=ax,colors=colors)
+    legend_elements = []
+    for ii,name in enumerate(ids):
+        legend_elements.append(plt.Line2D([0],[0],marker='o',color=colors[ii],label=name,markerfacecolor=colors[ii],markersize=5,linewidth=0))
+    ax.legend(handles=legend_elements,loc='center left',bbox_to_anchor=(1, 0.5))
+    ax.set_yscale('log')
+    fig.tight_layout()
+    fig.savefig(savename)
 
 def make_table_run_times_for_cpp(filename):
     ids = ("arabidopsis",
@@ -531,13 +574,17 @@ def run_benchmark_models_cpp(net_kw_subnet_generator):
 
 ##### Model network benchmark plotting for cpp
 
-def plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,x_axis_label,y_axis_label,title,plot_to_ax=None):
+def plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,x_axis_label,y_axis_label,title,plot_to_ax=None,colors=None):
     if plot_to_ax is None:
         fig,ax = plt.subplots()
     else:
         ax = plot_to_ax
+        fig = ax.get_figure()
     for ii in range(len(individual_y_axes)):
-        ax.plot(shared_x_axis,individual_y_axes[ii],formats[ii],label=line_labels[ii])
+        if colors:
+            ax.plot(shared_x_axis,individual_y_axes[ii],formats[ii],label=line_labels[ii],color=colors[ii])
+        else:
+            ax.plot(shared_x_axis,individual_y_axes[ii],formats[ii],label=line_labels[ii])
     ax.set_xlabel(x_axis_label)
     ax.set_ylabel(y_axis_label)
     ax.set_title(title)
