@@ -360,7 +360,10 @@ def run_times_for_cpp(return_run_times_in_dict=False):
                     if return_run_times_in_dict:
                         d[name][size] = (nl_mesu_time,a_mesu_time,nl_mesu_number)
             except:
-                pass
+                if return_run_times_in_dict:
+                    d[name][size] = None
+                else:
+                    pass
     if return_run_times_in_dict:
         return d
     else:
@@ -381,6 +384,29 @@ def plot_run_times_for_cpp():
     plt.title('C++ relative running times for ppi data')
     plt.tight_layout(pad=0.1)
     plt.savefig('cpp_figures/cpp_relative_run_times.pdf',bbox_inches='tight')
+
+def make_table_run_times_for_cpp(filename):
+    ids = ("arabidopsis",
+           "bos",
+           "candida",
+           "celegans",
+           "drosophila",
+           "gallus",
+           "mus",
+           "plasmodium",
+           "rattus",
+           "sacchcere",
+           "sacchpomb"
+           )
+    sizes = ((2,2),(3,2),(2,3),(3,3),(4,2),(4,3))
+    d = run_times_for_cpp(return_run_times_in_dict=True)
+    with open(filename,'w') as f:
+        for name in ids:
+            preamble = name
+            for size in sizes:
+                curr_line = preamble + " & " + str(size[0]) + ", " + str(size[1]) + " & " + (str(d[name][size][2]) if d[name][size] else "-") + " & " + (str(d[name][size][0]) if d[name][size] else "-") + " & " + (str(d[name][size][1]) if d[name][size] else "-") + r" \\" + "\n"
+                f.write(curr_line)
+                preamble = ""
 
 ##### Model networks benchmarks for cpp
 
