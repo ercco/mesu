@@ -642,6 +642,53 @@ void run_all_ppi(int specific_index = -1) {
     }
 }
 
+void print_info_about_ppi_nets() {
+    std::vector<std::string> filenames = {"multiplex_pp_data/Arabidopsis_Multiplex_Genetic/Dataset/arabidopsis_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Bos_Multiplex_Genetic/Dataset/bos_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Candida_Multiplex_Genetic/Dataset/candida_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Celegans_Multiplex_Genetic/Dataset/celegans_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Drosophila_Multiplex_Genetic/Dataset/drosophila_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Gallus_Multiplex_Genetic/Dataset/gallus_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Mus_Multiplex_Genetic/Dataset/mus_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Plasmodium_Multiplex_Genetic/Dataset/plasmodium_genetic_multiplex.edges",
+                                          "multiplex_pp_data/Rattus_Multiplex_Genetic/Dataset/rattus_genetic_multiplex.edges",
+                                          "multiplex_pp_data/SacchCere_Multiplex_Genetic/Dataset/sacchcere_genetic_multiplex.edges",
+                                          "multiplex_pp_data/SacchPomb_Multiplex_Genetic/Dataset/sacchpomb_genetic_multiplex.edges"
+                                         };
+    std::vector<std::string> ids = {"arabidopsis",
+                                    "bos",
+                                    "candida",
+                                    "celegans",
+                                    "drosophila",
+                                    "gallus",
+                                    "mus",
+                                    "plasmodium",
+                                    "rattus",
+                                    "sacchcere",
+                                    "sacchpomb"
+                                   };
+    for (int ii=0; ii<filenames.size(); ii++) {
+        MLnet mlnet = load_ppi_data(filenames[ii]);
+        int n_edges = 0;
+        std::pair<EdgeIterator,EdgeIterator> edge_iter_pair = mlnet.get_all_mledges();
+        for (EdgeIterator edge = edge_iter_pair.first; edge != edge_iter_pair.second; edge++) {n_edges++;}
+        std::cout << ids[ii] << "\n";
+        std::cout << "edges: " << n_edges << "\n";
+        std::pair<std::vector<NL>,std::vector<Vertex>> combined = mlnet.get_all_nls();
+        std::unordered_set<int> layers;
+        std::unordered_set<int> nodes;
+        layers.clear();
+        nodes.clear();
+        for (int jj=0; jj<combined.first.size(); jj++) {
+            std::array<int,N_ASPECTS+1> els = combined.first[jj].get_el();
+            layers.insert(els[1]);
+            nodes.insert(els[0]);
+        }
+        std::cout << "layers: " << layers.size() << "\n";
+        std::cout << "nodes: " << nodes.size() << "\n";
+    }
+}
+
 void print_arguments(const std::vector<std::string>& args) {
     for (std::string param_str : args) {
         std::cout << param_str << "\n";
