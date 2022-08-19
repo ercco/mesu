@@ -428,6 +428,39 @@ def plot_absolute_running_times_for_cpp():
     fig.tight_layout()
     fig.savefig(savename)
 
+def plot_ppi_net_sizes():
+    ids = ("arabidopsis",
+       "bos",
+       "candida",
+       "celegans",
+       "drosophila",
+       "gallus",
+       "mus",
+       "plasmodium",
+       "rattus",
+       "sacchcere",
+       "sacchpomb"
+       )
+    n_nodes = [6980,325,367,3879,8215,313,7747,1203,2640,6570,4092]
+    n_layers = [7,4,7,6,7,6,7,3,6,7,7]
+    n_edges = [19574,360,446,8826,45401,411,21753,2489,4670,304886,69324]
+    x_values = [0.02,0.025,-0.025,0,0,0,-0.02,0,0,0,0]
+    text_y_multipliers = [0.9,0.8,1.2,1,1,1,1.1,1,1,1,1]
+    fig,ax = plt.subplots(figsize=(1.9,4.8))
+    colors = ["#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd", "#ccebc5"]
+    for ii,ee in enumerate(n_edges):
+        ax.scatter(x_values[ii],[ee],c=colors[ii],marker='o')
+        plt.text(0.1,ee*text_y_multipliers[ii],ids[ii],ha='left')
+    ax.set_xlim([-0.04,0.4])
+    ax.set_yscale('log')
+    ax.set_ylabel('Number of edges')
+    ax.xaxis.set_visible(False)
+    ax.spines['top'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    plt.tight_layout()
+    fig.savefig('cpp_figures/edge_numbers.pdf')
+
 def make_table_run_times_for_cpp(filename):
     ids = ("arabidopsis",
            "bos",
