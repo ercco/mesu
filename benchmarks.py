@@ -321,7 +321,7 @@ def run_times_for_example_data():
         plt.show()
     plt.close('all')
 
-def run_times_for_cpp(return_run_times_in_dict=False):
+def run_times_for_cpp(return_run_times_in_dict=False,result_folder='cpp_results'):
     if return_run_times_in_dict:
         d = collections.defaultdict(dict)
     ids = ("arabidopsis",
@@ -342,7 +342,7 @@ def run_times_for_cpp(return_run_times_in_dict=False):
     time_fractions = []
     for name in ids:
         for size in sizes:
-            filename = "cpp_results/" + name + "_(" + str(size[0]) + "," + str(size[1]) + ").txt"
+            filename = result_folder + "/" + name + "_(" + str(size[0]) + "," + str(size[1]) + ").txt"
             try:
                 with open(filename,'r') as f:
                     file_is_empty = True
@@ -389,8 +389,11 @@ def plot_run_times_for_cpp():
     plt.tight_layout(pad=0.1)
     plt.savefig('cpp_figures/cpp_relative_run_times.pdf',bbox_inches='tight')
 
-def plot_absolute_running_times_for_cpp():
-    savename = 'cpp_figures/absolute_running_times.pdf'
+def plot_absolute_running_times_for_cpp(legend=False):
+    if legend:
+        savename = 'cpp_figures/absolute_running_times.pdf'
+    else:
+        savename = 'cpp_figures/absolute_running_times_no_legend.pdf'
     ids = ("arabidopsis",
            "bos",
            "candida",
@@ -406,7 +409,7 @@ def plot_absolute_running_times_for_cpp():
     # change order of sizes
     sizes = ((2,2),(2,3),(3,2),(3,3),(4,2),(4,3))
     colors = ["#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd", "#ccebc5"]
-    d = run_times_for_cpp(return_run_times_in_dict=True)
+    d = run_times_for_cpp(return_run_times_in_dict=True,result_folder='cpp_results_hammer')
     shared_x_axis = [str(size) for size in sizes]
     individual_y_axes_nl_mesu = []
     individual_y_axes_a_mesu = []
@@ -423,7 +426,8 @@ def plot_absolute_running_times_for_cpp():
     legend_elements = []
     for ii,name in enumerate(ids):
         legend_elements.append(plt.Line2D([0],[0],marker='o',color=colors[ii],label=name,markerfacecolor=colors[ii],markersize=5,linewidth=0))
-    ax.legend(handles=legend_elements,loc='center left',bbox_to_anchor=(1, 0.5))
+    if legend:
+        ax.legend(handles=legend_elements,loc='center left',bbox_to_anchor=(1, 0.5))
     ax.set_yscale('log')
     fig.tight_layout()
     fig.savefig(savename)
