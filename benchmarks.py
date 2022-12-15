@@ -543,10 +543,9 @@ def make_geo_mplex_generator():
             return_dict['subnet_size'] = subnet_size
             yield return_dict
 
-def make_geo_mlayer_generator(layers_in_second_aspect=1):
+def make_geo_mlayer_generator(layers_in_second_aspect=1,nnodes=1000):
     mean_degree_inside = 3
     mean_degree_between = 2
-    nnodes = 1000
     nlayers_in_first_aspect = [3,4,5,6,7,8,9,10]
     if layers_in_second_aspect > 1:
         subnet_sizes = [(2,2,2),(2,3,2),(3,2,2),(3,3,2)]
