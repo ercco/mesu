@@ -14,7 +14,6 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 #include <boost/graph/connected_components.hpp>
 #include <chrono>                    // for timing
-#define N_ASPECTS 1
 
 using namespace boost;
 
