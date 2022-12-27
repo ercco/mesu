@@ -265,7 +265,7 @@ bool valid_nl_mesu(const MLnet& mlnet, const std::unordered_set<NL>& VM_subnet, 
     return false;
 }
 
-void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::unordered_set<NL>& VM_subnet, std::unordered_set<NL>& extension, Vertex& gamma_index, int& total_number) {
+void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::unordered_set<NL>& VM_subnet, std::unordered_set<NL>& extension, Vertex& gamma_index, unsigned long long int& total_number) {
     std::array<int,N_ASPECTS+1> volume = spanned_volume(VM_subnet);
     if (volume == size) {
         if (valid_nl_mesu(mlnet,VM_subnet,extension,gamma_index)) {total_number++;}
@@ -295,7 +295,7 @@ void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, 
 }
 
 int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
-    int total_number = 0;
+    unsigned long long int total_number = 0;
     std::pair<std::vector<NL>,std::vector<Vertex>> combined = mlnet.get_all_nls();
     for (int ii=0; ii<combined.first.size(); ii++) {
         Vertex gamma_index = mlnet.get_id_from_nl(combined.first[ii]);
@@ -420,7 +420,7 @@ std::vector<int> candidate_extension_indices(const std::array<std::unordered_set
     return candidates;
 }
 
-void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::array<std::unordered_set<int>,N_ASPECTS+1>& S, std::array<std::unordered_set<int>,N_ASPECTS+1>& extension, NL& gamma, int& total_number) {
+void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::array<std::unordered_set<int>,N_ASPECTS+1>& S, std::array<std::unordered_set<int>,N_ASPECTS+1>& extension, NL& gamma, unsigned long long int& total_number) {
     bool size_ok = true;
     for (int ii=0; ii<N_ASPECTS+1; ii++) {if (S[ii].size()!=size[ii]) {size_ok=false;break;}}
     if (size_ok) {
@@ -468,7 +468,7 @@ void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, s
 }
 
 int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
-    int total_number = 0;
+    unsigned long long int total_number = 0;
     std::pair<std::vector<NL>,std::vector<Vertex>> combined = mlnet.get_all_nls();
     for (int ii=0; ii<combined.first.size(); ii++) {
         NL gamma = combined.first[ii];
