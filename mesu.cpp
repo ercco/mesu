@@ -489,7 +489,7 @@ int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
     return total_number;
 }
 
-// file io -------------------------------------------------------------------------------------------------------------------
+// file input -------------------------------------------------------------------------------------------------------------------
 
 MLnet load_edge_file(const std::string& filename) {
     // file format: a0 a1 a2 ... b0 b1 b2 ... (anything after ignored)
@@ -700,6 +700,53 @@ void test_write_to_argument_file(const std::string& fname) {
     output << "and on the second line\n";
     output.close();
 }
+
+// output class --------------------------------------------------------------------------------------------------------------
+
+// print subnet into output_stream in format x1,x2;y1,y2,y3;z1 etc., where x y z are different aspects
+void print_subnet(const std::array<std::unordered_set<int>,N_ASPECTS+1>& subnet, std::ostream& output_stream) {
+    std::string aspect_separator = "";
+    for (auto elem_layer_set : subnet) {
+        output_stream << aspect_separator;
+        aspect_separator = ";";
+        std::string separator = "";
+        for (auto elem_layer : elem_layer_set) {
+            output_stream << separator << elem_layer;
+            separator = ",";
+        }
+    }
+}
+
+// general interface for output
+// specific cases implemented in derived classes
+class ValidSubnetworkHandler {
+    public:
+     virtual void output(const std::array<std::unordered_set<int>,N_ASPECTS+1> S) {};
+};
+
+// individual output classes
+
+// counts how many valid subnetworks there are
+class SubnetworkNumberCounter : public ValidSubnetworkHandler {
+    unsigned long long int total_number;
+    public:
+     SubnetworkNumberCounter() : total_number(0) {}
+     void output(const std::array<std::unordered_set<int>,N_ASPECTS+1> S) override {total_number++;}
+     unsigned long long int get_total_number() {return total_number;}
+};
+
+// print subnetworks to stream (default: std::cout)
+class SubnetworkPrinter : public ValidSubnetworkHandler {
+    std::ostream& output_stream;
+    public:
+     SubnetworkPrinter() : output_stream(std::cout) {}
+     SubnetworkPrinter(std::ostream& stream) : output_stream(stream) {}
+     void output(const std::array<std::unordered_set<int>,N_ASPECTS+1> subnet) override {
+        print_subnet(subnet, output_stream);
+        output_stream << "\n";
+     }
+};
+
 
 // main ----------------------------------------------------------------------------------------------------------------------
 
