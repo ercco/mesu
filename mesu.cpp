@@ -17,6 +17,52 @@
 
 using namespace boost;
 
+// output class --------------------------------------------------------------------------------------------------------------
+
+// print subnet into output_stream in format x1,x2;y1,y2,y3;z1 etc., where x y z are different aspects
+void print_subnet(const std::array<std::unordered_set<int>,N_ASPECTS+1>& subnet, std::ostream& output_stream) {
+    std::string aspect_separator = "";
+    for (auto elem_layer_set : subnet) {
+        output_stream << aspect_separator;
+        aspect_separator = ";";
+        std::string separator = "";
+        for (auto elem_layer : elem_layer_set) {
+            output_stream << separator << elem_layer;
+            separator = ",";
+        }
+    }
+}
+
+// general interface for output
+// specific cases implemented in derived classes
+class ValidSubnetworkHandler {
+    public:
+     virtual void process_subnet(const std::array<std::unordered_set<int>,N_ASPECTS+1> S) {};
+};
+
+// individual output classes
+
+// counts how many valid subnetworks there are
+class SubnetworkNumberCounter : public ValidSubnetworkHandler {
+    unsigned long long int total_number;
+    public:
+     SubnetworkNumberCounter() : total_number(0) {}
+     void process_subnet(const std::array<std::unordered_set<int>,N_ASPECTS+1> S) override {total_number++;}
+     unsigned long long int get_total_number() {return total_number;}
+};
+
+// print subnetworks to stream (default: std::cout)
+class SubnetworkPrinter : public ValidSubnetworkHandler {
+    std::ostream& output_stream;
+    public:
+     SubnetworkPrinter() : output_stream(std::cout) {}
+     SubnetworkPrinter(std::ostream& stream) : output_stream(stream) {}
+     void process_subnet(const std::array<std::unordered_set<int>,N_ASPECTS+1> subnet) override {
+        print_subnet(subnet, output_stream);
+        output_stream << "\n";
+     }
+};
+
 // multilayer data structures ------------------------------------------------------------------------------------------------
 
 // node-layer class
@@ -265,10 +311,10 @@ bool valid_nl_mesu(const MLnet& mlnet, const std::unordered_set<NL>& VM_subnet, 
     return false;
 }
 
-void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::unordered_set<NL>& VM_subnet, std::unordered_set<NL>& extension, Vertex& gamma_index, unsigned long long int& total_number) {
+void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::unordered_set<NL>& VM_subnet, std::unordered_set<NL>& extension, Vertex& gamma_index, ValidSubnetworkHandler& valid_subnetwork_handler) {
     std::array<int,N_ASPECTS+1> volume = spanned_volume(VM_subnet);
     if (volume == size) {
-        if (valid_nl_mesu(mlnet,VM_subnet,extension,gamma_index)) {total_number++;}
+        if (valid_nl_mesu(mlnet,VM_subnet,extension,gamma_index)) {valid_subnetwork_handler.process_subnet(spanned_space(VM_subnet));}
         return;
     }
     std::unordered_set<NL> N = VM_neighbors(mlnet,VM_subnet);
@@ -289,12 +335,12 @@ void extend_nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, 
         for (NL neigh : neighbors) {
             if (VM_subnet.count(neigh) < 1 and N.count(neigh) < 1 and mlnet.get_id_from_nl(neigh) > gamma_index) {extension_prime.insert(neigh);}
         }
-        extend_nl_mesu(mlnet,size,VM_subnet_prime,extension_prime,gamma_index,total_number);
+        extend_nl_mesu(mlnet,size,VM_subnet_prime,extension_prime,gamma_index,valid_subnetwork_handler);
     }
     return;
 }
 
-int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
+void nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, ValidSubnetworkHandler& valid_subnetwork_handler) {
     unsigned long long int total_number = 0;
     std::pair<std::vector<NL>,std::vector<Vertex>> combined = mlnet.get_all_nls();
     for (int ii=0; ii<combined.first.size(); ii++) {
@@ -313,9 +359,9 @@ int nl_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
         //std::cout << " ext: ";
         //for (auto e = extension.begin(); e != extension.end(); e++) {(*e).print();}
         //std::cout << "\n";
-        extend_nl_mesu(mlnet,size,VM_subnet,extension,gamma_index,total_number);
+        extend_nl_mesu(mlnet,size,VM_subnet,extension,gamma_index,valid_subnetwork_handler);
     }
-    return total_number;
+    return;
 }
 
 // A-MESU
@@ -420,11 +466,11 @@ std::vector<int> candidate_extension_indices(const std::array<std::unordered_set
     return candidates;
 }
 
-void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::array<std::unordered_set<int>,N_ASPECTS+1>& S, std::array<std::unordered_set<int>,N_ASPECTS+1>& extension, NL& gamma, unsigned long long int& total_number) {
+void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, std::array<std::unordered_set<int>,N_ASPECTS+1>& S, std::array<std::unordered_set<int>,N_ASPECTS+1>& extension, NL& gamma, ValidSubnetworkHandler& valid_subnetwork_handler) {
     bool size_ok = true;
     for (int ii=0; ii<N_ASPECTS+1; ii++) {if (S[ii].size()!=size[ii]) {size_ok=false;break;}}
     if (size_ok) {
-        if (valid_a_mesu(mlnet, S)) {total_number++;}
+        if (valid_a_mesu(mlnet, S)) {valid_subnetwork_handler.process_subnet(S);}
         return;
     }
     std::array<std::unordered_set<int>,N_ASPECTS+1> N = subnet_valid_neighbor_elem_layers(mlnet,S,gamma);
@@ -462,12 +508,12 @@ void extend_a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, s
                     }
                 }
             }
-            extend_a_mesu(mlnet,size,S_prime,extension_prime,gamma,total_number);
+            extend_a_mesu(mlnet,size,S_prime,extension_prime,gamma,valid_subnetwork_handler);
         }
     }
 }
 
-int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
+void a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, ValidSubnetworkHandler& valid_subnetwork_handler) {
     unsigned long long int total_number = 0;
     std::pair<std::vector<NL>,std::vector<Vertex>> combined = mlnet.get_all_nls();
     for (int ii=0; ii<combined.first.size(); ii++) {
@@ -484,9 +530,9 @@ int a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size) {
             for (NL lambda : sub_diff) {if (compare_nls(lambda,gamma)) {lambda_indices_valid=false;break;}}
             if (lambda_indices_valid) {for (int jj=0; jj<N_ASPECTS+1; jj++) {int el=neigh.get_el()[jj]; if (S[jj].count(el)<1) {extension[jj].insert(el);}}}
         }
-        extend_a_mesu(mlnet,size,S,extension,gamma,total_number);
+        extend_a_mesu(mlnet,size,S,extension,gamma,valid_subnetwork_handler);
     }
-    return total_number;
+    return;
 }
 
 // file input -------------------------------------------------------------------------------------------------------------------
@@ -524,7 +570,9 @@ MLnet load_edge_file(const std::string& filename) {
     return mlnet;
 }
 
-void run_edge_file(const std::string& filename, const std::string& savename, const std::array<int,N_ASPECTS+1>& size) {
+// file running --------------------------------------------------------------------------------------------------------------
+/*
+void time_algorithms(const std::string& filename, const std::string& savename, const std::array<int,N_ASPECTS+1>& size) {
     if (not std::filesystem::exists(savename)) {
         MLnet mlnet = load_edge_file(filename);
         std::ofstream output(savename);
@@ -541,6 +589,7 @@ void run_edge_file(const std::string& filename, const std::string& savename, con
         output.close();
     }
 }
+*/
 
 std::array<int,N_ASPECTS+1> parse_size(const std::string& size_str, const char& delimiter) {
     auto sstream = std::istringstream(size_str);
@@ -555,6 +604,53 @@ std::array<int,N_ASPECTS+1> parse_size(const std::string& size_str, const char& 
     return elem_layers;
 }
 
+void run_time(std::string inputfile, std::string outputfile, std::array<int,N_ASPECTS+1> size, std::string algo) {
+    std::ofstream out_file_stream;
+    if (outputfile != "stdout") {out_file_stream.open(outputfile);}
+    // default output stream is std::cout
+    std::ostream & output_stream = (outputfile != "stdout" ? out_file_stream : std::cout);
+    MLnet mlnet = load_edge_file(inputfile);
+    // choose which algos to run, or both
+    if (algo == "nl-mesu" or algo == "both") {
+        SubnetworkNumberCounter subnet_number_counter;
+        auto start = std::chrono::steady_clock::now();
+        nl_mesu(mlnet,size,subnet_number_counter);
+        auto end = std::chrono::steady_clock::now();
+        auto tdiff = end - start;
+        output_stream << "nl-mesu "<< std::chrono::duration<double> (tdiff).count() << " " << subnet_number_counter.get_total_number() << "\n";
+    }
+    if (algo == "a-mesu" or algo == "both") {
+        SubnetworkNumberCounter subnet_number_counter;
+        auto start = std::chrono::steady_clock::now();
+        nl_mesu(mlnet,size,subnet_number_counter);
+        auto end = std::chrono::steady_clock::now();
+        auto tdiff = end - start;
+        output_stream << "a-mesu "<< std::chrono::duration<double> (tdiff).count() << " " << subnet_number_counter.get_total_number() << "\n";
+    }
+    return;
+}
+
+void run_count(std::string inputfile, std::string outputfile, std::array<int,N_ASPECTS+1> size, std::string algo) {}
+
+void run_print(std::string inputfile, std::string outputfile, std::array<int,N_ASPECTS+1> size, std::string algo) {}
+
+// USAGE: mesu.out inputfile outputfile 'size_1,size_2,...,size_d' output_method algo
+void run_edge_file(std::vector<std::string> args) {
+    std::string inputfile = args[1];
+    std::string outputfile = args[2];
+    std::array<int,N_ASPECTS+1> size = parse_size(args[3],',');
+    std::string output_method = args[4];
+    std::string algo = args[5]; // one of "nl-mesu" or "a-mesu"
+    // don't run if outputfile already exists
+    if (outputfile == "stdout" or not std::filesystem::exists(outputfile)) {
+        // choose appropriate output method
+        if (output_method == "count") {run_count(inputfile,outputfile,size,algo);}
+        else if (output_method == "time") {run_time(inputfile,outputfile,size,algo);}
+        else if (output_method == "print") {run_print(inputfile,outputfile,size,algo);}
+    }
+}
+
+// ppi data
 MLnet load_ppi_data(const std::string filename) {
     MLnet mlnet;
     std::ifstream file(filename);
@@ -585,6 +681,7 @@ MLnet load_ppi_data(const std::string filename) {
     return mlnet;
 }
 
+/*
 void run_ppi_data(const std::string& filename, const std::string& savename, const std::array<int,N_ASPECTS+1>& size) {
     if (not std::filesystem::exists(savename)) {
         MLnet mlnet = load_ppi_data(filename);
@@ -602,6 +699,7 @@ void run_ppi_data(const std::string& filename, const std::string& savename, cons
         output.close();
     }
 }
+
 
 void run_all_ppi(int specific_index = -1) {
     std::vector<std::string> filenames = {"multiplex_pp_data/Arabidopsis_Multiplex_Genetic/Dataset/arabidopsis_genetic_multiplex.edges",
@@ -640,6 +738,7 @@ void run_all_ppi(int specific_index = -1) {
         }
     }
 }
+*/
 
 void print_info_about_ppi_nets() {
     std::vector<std::string> filenames = {"multiplex_pp_data/Arabidopsis_Multiplex_Genetic/Dataset/arabidopsis_genetic_multiplex.edges",
@@ -700,52 +799,6 @@ void test_write_to_argument_file(const std::string& fname) {
     output << "and on the second line\n";
     output.close();
 }
-
-// output class --------------------------------------------------------------------------------------------------------------
-
-// print subnet into output_stream in format x1,x2;y1,y2,y3;z1 etc., where x y z are different aspects
-void print_subnet(const std::array<std::unordered_set<int>,N_ASPECTS+1>& subnet, std::ostream& output_stream) {
-    std::string aspect_separator = "";
-    for (auto elem_layer_set : subnet) {
-        output_stream << aspect_separator;
-        aspect_separator = ";";
-        std::string separator = "";
-        for (auto elem_layer : elem_layer_set) {
-            output_stream << separator << elem_layer;
-            separator = ",";
-        }
-    }
-}
-
-// general interface for output
-// specific cases implemented in derived classes
-class ValidSubnetworkHandler {
-    public:
-     virtual void output(const std::array<std::unordered_set<int>,N_ASPECTS+1> S) {};
-};
-
-// individual output classes
-
-// counts how many valid subnetworks there are
-class SubnetworkNumberCounter : public ValidSubnetworkHandler {
-    unsigned long long int total_number;
-    public:
-     SubnetworkNumberCounter() : total_number(0) {}
-     void output(const std::array<std::unordered_set<int>,N_ASPECTS+1> S) override {total_number++;}
-     unsigned long long int get_total_number() {return total_number;}
-};
-
-// print subnetworks to stream (default: std::cout)
-class SubnetworkPrinter : public ValidSubnetworkHandler {
-    std::ostream& output_stream;
-    public:
-     SubnetworkPrinter() : output_stream(std::cout) {}
-     SubnetworkPrinter(std::ostream& stream) : output_stream(stream) {}
-     void output(const std::array<std::unordered_set<int>,N_ASPECTS+1> subnet) override {
-        print_subnet(subnet, output_stream);
-        output_stream << "\n";
-     }
-};
 
 
 // main ----------------------------------------------------------------------------------------------------------------------
@@ -875,10 +928,17 @@ int main(int argc, char* argv[]) {
     //mlnet.print_all_nls();
     //mlnet.print_all_mledges();
     
-    // USAGE: mesu.out inputfile outputfile 'size_1,size_2,...,size_d'
+    // USAGE: mesu.out inputfile outputfile 'size_1,size_2,...,size_d' output_method algo
+    // inputfile : edge filename
+    // outputfile : filename where output should be written ("stdout" prints to stdout)
+    // 'size_1,size_2,...,size_d' : ints for size in every aspect
+    // output_method :
+    //      time : elapsed time and subnetwork counts
+    //      count : subnetwork counts
+    //      print : subnetworks
+    // algo : "nl-mesu" or "a-mesu" or "both"
     std::vector<std::string> args(argv, argv+argc);
-    std::array<int,N_ASPECTS+1> size = parse_size(args[3],',');
-    run_edge_file(args[1], args[2], size);
+    run_edge_file(args);
     /*
     std::string problem_file = "cpp_benchmark_networks/er_multilayer_any_aspects_deg_1_or_greater_l=(40,25)_p=0.02";
     std::string problem_savename = "problem_file_rerun";
