@@ -622,7 +622,7 @@ void run_time(std::string inputfile, std::string outputfile, std::array<int,N_AS
     if (algo == "a-mesu" or algo == "both") {
         SubnetworkNumberCounter subnet_number_counter;
         auto start = std::chrono::steady_clock::now();
-        nl_mesu(mlnet,size,subnet_number_counter);
+        a_mesu(mlnet,size,subnet_number_counter);
         auto end = std::chrono::steady_clock::now();
         auto tdiff = end - start;
         output_stream << "a-mesu "<< std::chrono::duration<double> (tdiff).count() << " " << subnet_number_counter.get_total_number() << "\n";
@@ -630,9 +630,43 @@ void run_time(std::string inputfile, std::string outputfile, std::array<int,N_AS
     return;
 }
 
-void run_count(std::string inputfile, std::string outputfile, std::array<int,N_ASPECTS+1> size, std::string algo) {}
+void run_count(std::string inputfile, std::string outputfile, std::array<int,N_ASPECTS+1> size, std::string algo) {
+    std::ofstream out_file_stream;
+    if (outputfile != "stdout") {out_file_stream.open(outputfile);}
+    // default output stream is std::cout
+    std::ostream & output_stream = (outputfile != "stdout" ? out_file_stream : std::cout);
+    MLnet mlnet = load_edge_file(inputfile);
+    // choose which algos to run, or both
+    if (algo == "nl-mesu" or algo == "both") {
+        SubnetworkNumberCounter subnet_number_counter;
+        nl_mesu(mlnet,size,subnet_number_counter);
+        output_stream << "nl-mesu " << subnet_number_counter.get_total_number() << "\n";
+    }
+    if (algo == "a-mesu" or algo == "both") {
+        SubnetworkNumberCounter subnet_number_counter;
+        a_mesu(mlnet,size,subnet_number_counter);
+        output_stream << "a-mesu " << subnet_number_counter.get_total_number() << "\n";
+    }
+    return;
+}
 
-void run_print(std::string inputfile, std::string outputfile, std::array<int,N_ASPECTS+1> size, std::string algo) {}
+void run_print(std::string inputfile, std::string outputfile, std::array<int,N_ASPECTS+1> size, std::string algo) {
+    std::ofstream out_file_stream;
+    if (outputfile != "stdout") {out_file_stream.open(outputfile);}
+    // default output stream is std::cout
+    std::ostream & output_stream = (outputfile != "stdout" ? out_file_stream : std::cout);
+    MLnet mlnet = load_edge_file(inputfile);
+    // choose which algos to run, or both
+    if (algo == "nl-mesu" or algo == "both") {
+        SubnetworkPrinter subnet_printer(output_stream);
+        nl_mesu(mlnet,size,subnet_printer);
+    }
+    if (algo == "a-mesu" or algo == "both") {
+        SubnetworkPrinter subnet_printer(output_stream);
+        a_mesu(mlnet,size,subnet_printer);
+    }
+    return;
+}
 
 // USAGE: mesu.out inputfile outputfile 'size_1,size_2,...,size_d' output_method algo
 void run_edge_file(std::vector<std::string> args) {
