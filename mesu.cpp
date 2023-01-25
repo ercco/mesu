@@ -673,6 +673,11 @@ void run_edge_file(std::vector<std::string> args) {
     std::string inputfile = args[1];
     std::string outputfile = args[2];
     std::array<int,N_ASPECTS+1> size = parse_size(args[3],',');
+    // default behavior: output_method == time and algo == both
+    if (args.size() == 4) {
+        args.push_back("time");
+        args.push_back("both");
+    }
     std::string output_method = args[4];
     std::string algo = args[5]; // one of "nl-mesu" or "a-mesu"
     // don't run if outputfile already exists
