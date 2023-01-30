@@ -604,6 +604,18 @@ std::array<int,N_ASPECTS+1> parse_size(const std::string& size_str, const char& 
     return elem_layers;
 }
 
+// make size array into size_str string for hacky ppi running
+std::string inverse_parse_size(const std::array<int,N_ASPECTS+1> size, const char& delimiter) {
+    std::ostringstream(size_str_stream);
+    char delimiter_with_init_behavior(0);
+    for (int s_i : size) {
+        size_str_stream << delimiter_with_init_behavior << s_i;
+        delimiter_with_init_behavior = delimiter;
+    }
+    std::string size_str(size_str_stream.str());
+    return size_str;
+}
+
 void run_time(std::string inputfile, std::string outputfile, std::array<int,N_ASPECTS+1> size, std::string algo) {
     std::ofstream out_file_stream;
     if (outputfile != "stdout") {out_file_stream.open(outputfile);}
