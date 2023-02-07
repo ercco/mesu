@@ -479,7 +479,7 @@ def make_table_run_times_for_cpp(filename):
            "sacchpomb"
            )
     sizes = ((2,2),(3,2),(2,3),(3,3),(4,2),(4,3))
-    d = run_times_for_cpp(return_run_times_in_dict=True)
+    d = run_times_for_cpp(return_run_times_in_dict=True,result_folder='cpp_results_hammer')
     with open(filename,'w') as f:
         for name in ids:
             preamble = name
@@ -628,8 +628,8 @@ def plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,x_ax
     return fig,ax
 
 def plot_mplex_relative_vs_net_size(net_kw_subnet_generator=make_geo_mplex_generator(),savename='cpp_benchmark_figures/geo_mplex.pdf',title='GEO mplex'):
-    shared_x_axis = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
-    #shared_x_axis = [3,4,5,6,7,8,9,10]
+    #shared_x_axis = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    shared_x_axis = [3,4,5,6,7,8,9,10]
     res_dict = dict()
     for param_dict in net_kw_subnet_generator:
         try:
@@ -661,5 +661,47 @@ def plot_mplex_relative_vs_net_size(net_kw_subnet_generator=make_geo_mplex_gener
     ax.plot(shared_x_axis,[1]*len(shared_x_axis),'--k')
     fig.savefig(savename)
 
-
+def plot_absolute_times_vs_net_size(net_kw_subnet_generator,savename,title):
+    #shared_x_axis = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    shared_x_axis = [3,4,5,6,7,8,9,10]
+    res_dict_with_separate_a_and_nl = dict()
+    res_dict_with_separate_a_and_nl['a-mesu'] = dict()
+    res_dict_with_separate_a_and_nl['nl-mesu'] = dict()
+    for param_dict in net_kw_subnet_generator:
+        try:
+            nl = len(param_dict['kwargs']['edges'])
+        except:
+            nl = param_dict['kwargs']['l'][1] # number of layers in first aspect
+        outputfile = parse_output_savename(parse_network_savename(param_dict['net_function'],**param_dict['kwargs']),param_dict['subnet_size'])
+        try:
+            nl_mesu_res,a_mesu_res = read_temp_file_res(outputfile)
+        except:
+            nl_mesu_res,a_mesu_res = ((None,None),(None,None))
+        assert(nl_mesu_res[1] == a_mesu_res[1])
+        # default value is list of -1's with length len(shared_x_axis). Insert into correct place according to nl
+        # value: t(a-mesu)/t(nl-mesu)
+        try:
+            res_dict_with_separate_a_and_nl['a-mesu'].setdefault(param_dict['subnet_size'],[-1]*len(shared_x_axis))[shared_x_axis.index(nl)] = a_mesu_res[0]
+        except:
+            res_dict_with_separate_a_and_nl['a-mesu'].setdefault(param_dict['subnet_size'],[-1]*len(shared_x_axis))[shared_x_axis.index(nl)] = None
+        try:
+            res_dict_with_separate_a_and_nl['nl-mesu'].setdefault(param_dict['subnet_size'],[-1]*len(shared_x_axis))[shared_x_axis.index(nl)] = nl_mesu_res[0]
+        except:
+            res_dict_with_separate_a_and_nl['nl-mesu'].setdefault(param_dict['subnet_size'],[-1]*len(shared_x_axis))[shared_x_axis.index(nl)] = None
+    individual_y_axes = []
+    formats = []
+    line_labels = []
+    for kk in sorted(res_dict_with_separate_a_and_nl['nl-mesu'].keys()):
+        individual_y_axes.append(res_dict_with_separate_a_and_nl['nl-mesu'][kk])
+        formats.append('-')
+        line_labels.append(str(kk))
+    for kk in sorted(res_dict_with_separate_a_and_nl['a-mesu'].keys()):
+        individual_y_axes.append(res_dict_with_separate_a_and_nl['a-mesu'][kk])
+        formats.append('--')
+        line_labels.append(str(kk))
+    fig,ax = plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,'Number of layers',r'$t$',title)
+    ax.set_yscale('log')
+    ax.legend()
+    #ax.plot(shared_x_axis,[1]*len(shared_x_axis),'--k')
+    fig.savefig(savename)
 
