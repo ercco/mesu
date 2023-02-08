@@ -705,3 +705,29 @@ def plot_absolute_times_vs_net_size(net_kw_subnet_generator,savename,title):
     #ax.plot(shared_x_axis,[1]*len(shared_x_axis),'--k')
     fig.savefig(savename)
 
+def plot_scatter_times_vs_number_of_subnets(net_kw_subnet_generator_list,savename):
+    nl_mesu_scatter = [[],[]]
+    a_mesu_scatter = [[],[]]
+    for net_kw_subnet_generator in net_kw_subnet_generator_list:
+        for param_dict in net_kw_subnet_generator:
+            outputfile = parse_output_savename(parse_network_savename(param_dict['net_function'],**param_dict['kwargs']),param_dict['subnet_size'])
+            try:
+                nl_mesu_res,a_mesu_res = read_temp_file_res(outputfile)
+                assert(nl_mesu_res[1] == a_mesu_res[1])
+                nl_mesu_scatter[0].append(nl_mesu_res[1])
+                nl_mesu_scatter[1].append(nl_mesu_res[0])
+                a_mesu_scatter[0].append(a_mesu_res[1])
+                a_mesu_scatter[1].append(a_mesu_res[0])
+            except:
+                pass
+    fig,ax = plt.subplots()
+    ax.scatter(nl_mesu_scatter[0],nl_mesu_scatter[1],color='darkred',marker='x',label='nl-mesu')
+    ax.scatter(a_mesu_scatter[0],a_mesu_scatter[1],color='darkgreen',marker='+',label='a-mesu')
+    print(a_mesu_scatter[0] == nl_mesu_scatter[0])
+    print(a_mesu_scatter[1] == nl_mesu_scatter[1])
+    ax.set_yscale('log')
+    ax.set_xscale('log')
+    ax.set_xlabel('# of subnets')
+    ax.set_ylabel(r'$t$ (seconds)')
+    ax.legend()
+    fig.savefig(savename)
