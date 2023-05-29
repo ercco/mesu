@@ -656,7 +656,7 @@ def plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,x_ax
     ax.set_xticks(shared_x_axis)
     return fig,ax
 
-def plot_mplex_relative_vs_net_size(net_kw_subnet_generator=make_geo_mplex_generator(),savename='cpp_benchmark_figures/geo_mplex.pdf',title='GEO mplex'):
+def plot_mplex_relative_vs_net_size(net_kw_subnet_generator=make_geo_mplex_generator(),savename='cpp_benchmark_figures/geo_mplex.pdf',title='GEO mplex',plot_to_ax=None):
     #shared_x_axis = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
     shared_x_axis = [3,4,5,6,7,8,9,10]
     res_dict = dict()
@@ -684,11 +684,12 @@ def plot_mplex_relative_vs_net_size(net_kw_subnet_generator=make_geo_mplex_gener
         individual_y_axes.append(res_dict[kk])
         formats.append('-')
         line_labels.append(str(kk))
-    fig,ax = plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,'Number of layers',r'$t_{a-mesu}/t_{nl-mesu}$',title)
+    fig,ax = plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,'Number of layers',r'$t_{a-mesu}/t_{nl-mesu}$',title,plot_to_ax=plot_to_ax)
     ax.set_yscale('log')
     ax.legend()
     ax.plot(shared_x_axis,[1]*len(shared_x_axis),'--k')
-    fig.savefig(savename)
+    if not plot_to_ax:
+        fig.savefig(savename)
 
 def plot_absolute_times_vs_net_size(net_kw_subnet_generator,savename,title):
     #shared_x_axis = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
@@ -765,3 +766,76 @@ def plot_scatter_times_vs_number_of_subnets(net_kw_subnet_generator_list,savenam
     ax.set_ylabel(r'$t$ (seconds)')
     ax.legend()
     fig.savefig(savename)
+
+def plot_combined_convenience_script(case):
+    # case 1 : two-aspect multilayer geometric (4 imgs)
+    if case == 1:
+        plt.rcParams.update({'legend.fontsize': 8.4,'legend.handlelength': 1,'legend.loc':'lower left','legend.columnspacing': 0.4,'legend.handletextpad': 0.2,'lines.linewidth':3})
+        fig,axs = plt.subplots(2, 2, sharex='all', sharey='all')
+        # 1000 n 1 l
+        net_kw_subnet_generator = make_geo_mlayer_generator(layers_in_second_aspect=1,nnodes=1000)
+        plot_mplex_relative_vs_net_size(net_kw_subnet_generator,savename='should_not_exist.pdf',title=None,plot_to_ax=axs[0][0])
+        axs[0][0].set_xlabel(None)
+        axs[0][0].set_ylabel(None)
+        axs[0][0].text(3,0.08,'a)',fontsize=15,weight='bold')
+        axs[0][0].legend(ncols=4)
+        axs[0][0].set_ylim([0.005,9])
+        # 1000 n 2 l
+        net_kw_subnet_generator = make_geo_mlayer_generator(layers_in_second_aspect=2,nnodes=1000)
+        plot_mplex_relative_vs_net_size(net_kw_subnet_generator,savename='should_not_exist.pdf',title=None,plot_to_ax=axs[0][1])
+        axs[0][1].set_xlabel(None)
+        axs[0][1].set_ylabel(None)
+        axs[0][1].text(3,0.08,'b)',fontsize=15,weight='bold')
+        axs[0][1].legend(ncols=4)
+        # 10 000 n 1 l
+        net_kw_subnet_generator = make_geo_mlayer_generator(layers_in_second_aspect=1,nnodes=10000)
+        plot_mplex_relative_vs_net_size(net_kw_subnet_generator,savename='should_not_exist.pdf',title=None,plot_to_ax=axs[1][0])
+        axs[1][0].set_xlabel(None)
+        axs[1][0].set_ylabel(None)
+        axs[1][0].text(3,0.08,'c)',fontsize=15,weight='bold')
+        axs[1][0].legend(ncols=4)
+        # 10 000 n 2 l
+        net_kw_subnet_generator = make_geo_mlayer_generator(layers_in_second_aspect=2,nnodes=10000)
+        plot_mplex_relative_vs_net_size(net_kw_subnet_generator,savename='should_not_exist.pdf',title=None,plot_to_ax=axs[1][1])
+        axs[1][1].set_xlabel(None)
+        axs[1][1].set_ylabel(None)
+        axs[1][1].text(3,0.08,'d)',fontsize=15,weight='bold')
+        axs[1][1].legend(ncols=4)
+        fig.subplots_adjust(wspace=0, hspace=0)
+        fig.subplots_adjust(top=0.99,right=0.99)
+        fig.supxlabel('           Number of layers in first aspect')
+        fig.supylabel(r'         $t_{elsse}$ / $t_{nlse}$')
+        fig.savefig('cpp_benchmark_figures/geo_mlayer_combined_1000_10000.pdf')
+        plt.rcParams.update(plt.rcParamsDefault)
+    # case 2 : mplex geo and er
+    # set xaxis in plotter to 3...20 !!!
+    if case == 2:
+        plt.rcParams.update({'legend.fontsize': 8.4,'legend.handlelength': 1,'legend.loc':'lower left','legend.columnspacing': 0.4,'legend.handletextpad': 0.2,'lines.linewidth':3})
+        fig,axs = plt.subplots(1, 2, sharex='all', sharey='all',figsize=(6.4,2.4))
+        # geo
+        net_kw_subnet_generator = make_geo_mplex_generator()
+        plot_mplex_relative_vs_net_size(net_kw_subnet_generator,savename='should_not_exist.pdf',title=None,plot_to_ax=axs[0])
+        axs[0].set_xlabel(None)
+        axs[0].set_ylabel(None)
+        axs[0].text(3,0.4,'a)',fontsize=15,weight='bold')
+        axs[0].legend(ncols=4)
+        axs[0].set_ylim(0.09,4.2)
+        xticklabs = axs[0].get_xticklabels()
+        plt.setp(axs[0].get_xticklabels(), visible=False)
+        plt.setp(xticklabs[::2], visible=True)
+        # er
+        net_kw_subnet_generator = make_er_mplex_generator()
+        plot_mplex_relative_vs_net_size(net_kw_subnet_generator,savename='should_not_exist.pdf',title=None,plot_to_ax=axs[1])
+        axs[1].set_xlabel(None)
+        axs[1].set_ylabel(None)
+        axs[1].text(3,0.4,'b)',fontsize=15,weight='bold')
+        axs[1].legend(ncols=4)
+        xticklabs = axs[1].get_xticklabels()
+        plt.setp(axs[1].get_xticklabels(), visible=False)
+        plt.setp(xticklabs[::2], visible=True)
+        fig.subplots_adjust(wspace=0, hspace=0)
+        fig.subplots_adjust(top=0.99,right=0.99,bottom=0.2)
+        fig.supxlabel('           Number of layers in first aspect')
+        fig.supylabel(r'         $t_{elsse}$ / $t_{nlse}$')
+        fig.savefig('cpp_benchmark_figures/mplex_geo_er_combined.pdf')
+        plt.rcParams.update(plt.rcParamsDefault)
