@@ -466,6 +466,7 @@ def plot_ppi_net_sizes():
     fig.savefig('cpp_figures/edge_numbers.pdf')
 
 def make_table_run_times_for_cpp(filename):
+    # table: organism, subnet size, subnet number, nl-mesu time, a-mesu time
     ids = ("arabidopsis",
            "bos",
            "candida",
@@ -484,7 +485,35 @@ def make_table_run_times_for_cpp(filename):
         for name in ids:
             preamble = name
             for size in sizes:
-                curr_line = preamble + " & " + str(size[0]) + ", " + str(size[1]) + " & " + (str(d[name][size][2]) if d[name][size] else "-") + " & " + (str(d[name][size][0]) if d[name][size] else "-") + " & " + (str(d[name][size][1]) if d[name][size] else "-") + r" \\" + "\n"
+                subnet_size_str = str(size[0]) + ", " + str(size[1])
+                if d[name][size]:
+                    number_of_subnets = d[name][size][2]
+                    number_of_subnets_str = f"{number_of_subnets:.2e}"
+                    nl_mesu_time_str = f"{d[name][size][0]:.2e}"
+                    a_mesu_time_str = f"{d[name][size][1]:.2e}"
+                    nl_mesu_subnets_per_second_str = f"{number_of_subnets/d[name][size][0]:.2e}" if number_of_subnets else "-"
+                    a_mesu_subnets_per_second_str = f"{number_of_subnets/d[name][size][1]:.2e}" if number_of_subnets else "-"
+                    # format to LaTeX
+                    number_of_subnets_str = "$" + number_of_subnets_str.split('e')[0] + r" \times 10^{" + number_of_subnets_str.split('e')[1].replace('+0','').replace('-0','-') + "}$" if number_of_subnets != 0 else "0"
+                    nl_mesu_time_str = "$" + nl_mesu_time_str.split('e')[0] + r" \times 10^{" + nl_mesu_time_str.split('e')[1].replace('+0','').replace('-0','-') + "}$"
+                    a_mesu_time_str = "$" + a_mesu_time_str.split('e')[0] + r" \times 10^{" + a_mesu_time_str.split('e')[1].replace('+0','').replace('-0','-') + "}$"
+                    nl_mesu_subnets_per_second_str = "$" + nl_mesu_subnets_per_second_str.split('e')[0] + r" \times 10^{" + nl_mesu_subnets_per_second_str.split('e')[1].replace('+0','').replace('-0','-') + "}$" if number_of_subnets else "-"
+                    a_mesu_subnets_per_second_str = "$" + a_mesu_subnets_per_second_str.split('e')[0] + r" \times 10^{" + a_mesu_subnets_per_second_str.split('e')[1].replace('+0','').replace('-0','-') + "}$" if number_of_subnets else "-"
+                else:
+                    number_of_subnets = "-"
+                    number_of_subnets_str = "-"
+                    nl_mesu_time_str = "-"
+                    a_mesu_time_str = "-"
+                    nl_mesu_subnets_per_second_str = "-"
+                    a_mesu_subnets_per_second_str = "-"
+                ending = r" \\" + "\n"
+                curr_line = " & ".join([preamble,subnet_size_str,number_of_subnets_str,nl_mesu_time_str,a_mesu_time_str,nl_mesu_subnets_per_second_str,a_mesu_subnets_per_second_str])
+                curr_line = curr_line + ending
+                #run_times = preamble + " & " + str(size[0]) + ", " + str(size[1]) + " & " + (str(d[name][size][2]) if d[name][size] else "-") + " & " + (str(d[name][size][0]) if d[name][size] else "-") + " & " + (str(d[name][size][1]) if d[name][size] else "-")
+                #number_of_subnets = d[name][size][2] if d[name][size] else None
+                #subnets_per_second = (str(number_of_subnets/d[name][size][0]) if d[name][size] and number_of_subnets else "-") + " & " + (str(number_of_subnets/d[name][size][1]) if d[name][size] and number_of_subnets else "-")
+                #ending = r" \\" + "\n"
+                #curr_line = run_times + " & " + subnets_per_second + ending
                 f.write(curr_line)
                 preamble = ""
 
@@ -691,15 +720,20 @@ def plot_absolute_times_vs_net_size(net_kw_subnet_generator,savename,title):
     individual_y_axes = []
     formats = []
     line_labels = []
-    for kk in sorted(res_dict_with_separate_a_and_nl['nl-mesu'].keys()):
+    colors = []
+    # default plt color cycle
+    color_cycle = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+    for ii,kk in enumerate(sorted(res_dict_with_separate_a_and_nl['nl-mesu'].keys())):
         individual_y_axes.append(res_dict_with_separate_a_and_nl['nl-mesu'][kk])
         formats.append('-')
         line_labels.append(str(kk))
-    for kk in sorted(res_dict_with_separate_a_and_nl['a-mesu'].keys()):
+        colors.append(color_cycle[ii])
+    for ii,kk in enumerate(sorted(res_dict_with_separate_a_and_nl['a-mesu'].keys())):
         individual_y_axes.append(res_dict_with_separate_a_and_nl['a-mesu'][kk])
         formats.append('--')
         line_labels.append(str(kk))
-    fig,ax = plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,'Number of layers',r'$t$',title)
+        colors.append(color_cycle[ii])
+    fig,ax = plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,'Number of layers',r'$t$',title,colors=colors)
     ax.set_yscale('log')
     ax.legend()
     #ax.plot(shared_x_axis,[1]*len(shared_x_axis),'--k')
