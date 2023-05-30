@@ -770,14 +770,14 @@ def plot_scatter_times_vs_number_of_subnets(net_kw_subnet_generator_list,savenam
 def plot_combined_convenience_script(case):
     # case 1 : two-aspect multilayer geometric (4 imgs)
     if case == 1:
-        plt.rcParams.update({'legend.fontsize': 8.4,'legend.handlelength': 1,'legend.loc':'lower left','legend.columnspacing': 0.4,'legend.handletextpad': 0.2,'lines.linewidth':3})
+        plt.rcParams.update({'legend.fontsize': 8.4,'legend.handlelength': 1,'legend.loc':'lower left','legend.columnspacing': 0.4,'legend.handletextpad': 0.2,'lines.linewidth':2})
         fig,axs = plt.subplots(2, 2, sharex='all', sharey='all')
         # 1000 n 1 l
         net_kw_subnet_generator = make_geo_mlayer_generator(layers_in_second_aspect=1,nnodes=1000)
         plot_mplex_relative_vs_net_size(net_kw_subnet_generator,savename='should_not_exist.pdf',title=None,plot_to_ax=axs[0][0])
         axs[0][0].set_xlabel(None)
         axs[0][0].set_ylabel(None)
-        axs[0][0].text(3,0.08,'a)',fontsize=15,weight='bold')
+        axs[0][0].text(3,0.08,'a)',fontsize=12)
         axs[0][0].legend(ncols=4)
         axs[0][0].set_ylim([0.005,9])
         # 1000 n 2 l
@@ -785,21 +785,21 @@ def plot_combined_convenience_script(case):
         plot_mplex_relative_vs_net_size(net_kw_subnet_generator,savename='should_not_exist.pdf',title=None,plot_to_ax=axs[0][1])
         axs[0][1].set_xlabel(None)
         axs[0][1].set_ylabel(None)
-        axs[0][1].text(3,0.08,'b)',fontsize=15,weight='bold')
+        axs[0][1].text(3,0.08,'b)',fontsize=12)
         axs[0][1].legend(ncols=4)
         # 10 000 n 1 l
         net_kw_subnet_generator = make_geo_mlayer_generator(layers_in_second_aspect=1,nnodes=10000)
         plot_mplex_relative_vs_net_size(net_kw_subnet_generator,savename='should_not_exist.pdf',title=None,plot_to_ax=axs[1][0])
         axs[1][0].set_xlabel(None)
         axs[1][0].set_ylabel(None)
-        axs[1][0].text(3,0.08,'c)',fontsize=15,weight='bold')
+        axs[1][0].text(3,0.08,'c)',fontsize=12)
         axs[1][0].legend(ncols=4)
         # 10 000 n 2 l
         net_kw_subnet_generator = make_geo_mlayer_generator(layers_in_second_aspect=2,nnodes=10000)
         plot_mplex_relative_vs_net_size(net_kw_subnet_generator,savename='should_not_exist.pdf',title=None,plot_to_ax=axs[1][1])
         axs[1][1].set_xlabel(None)
         axs[1][1].set_ylabel(None)
-        axs[1][1].text(3,0.08,'d)',fontsize=15,weight='bold')
+        axs[1][1].text(3,0.08,'d)',fontsize=12)
         axs[1][1].legend(ncols=4)
         fig.subplots_adjust(wspace=0, hspace=0)
         fig.subplots_adjust(top=0.99,right=0.99)
@@ -810,14 +810,14 @@ def plot_combined_convenience_script(case):
     # case 2 : mplex geo and er
     # set xaxis in plotter to 3...20 !!!
     if case == 2:
-        plt.rcParams.update({'legend.fontsize': 8.4,'legend.handlelength': 1,'legend.loc':'lower left','legend.columnspacing': 0.4,'legend.handletextpad': 0.2,'lines.linewidth':3})
+        plt.rcParams.update({'legend.fontsize': 8.4,'legend.handlelength': 1,'legend.loc':'lower left','legend.columnspacing': 0.4,'legend.handletextpad': 0.2,'lines.linewidth':2})
         fig,axs = plt.subplots(1, 2, sharex='all', sharey='all',figsize=(6.4,2.4))
         # geo
         net_kw_subnet_generator = make_geo_mplex_generator()
         plot_mplex_relative_vs_net_size(net_kw_subnet_generator,savename='should_not_exist.pdf',title=None,plot_to_ax=axs[0])
         axs[0].set_xlabel(None)
         axs[0].set_ylabel(None)
-        axs[0].text(3,0.4,'a)',fontsize=15,weight='bold')
+        axs[0].text(3,0.4,'a)',fontsize=12)
         axs[0].legend(ncols=4)
         axs[0].set_ylim(0.09,4.2)
         xticklabs = axs[0].get_xticklabels()
@@ -828,7 +828,7 @@ def plot_combined_convenience_script(case):
         plot_mplex_relative_vs_net_size(net_kw_subnet_generator,savename='should_not_exist.pdf',title=None,plot_to_ax=axs[1])
         axs[1].set_xlabel(None)
         axs[1].set_ylabel(None)
-        axs[1].text(3,0.4,'b)',fontsize=15,weight='bold')
+        axs[1].text(3,0.4,'b)',fontsize=12)
         axs[1].legend(ncols=4)
         xticklabs = axs[1].get_xticklabels()
         plt.setp(axs[1].get_xticklabels(), visible=False)
