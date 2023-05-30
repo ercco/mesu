@@ -421,15 +421,20 @@ def plot_absolute_running_times_for_cpp(legend=False):
             curr_ax_a.append(d[name][size][1] if d[name][size] else None)
         individual_y_axes_nl_mesu.append(curr_ax_nl)
         individual_y_axes_a_mesu.append(curr_ax_a)
-    fig,ax = plot_group_of_lines(shared_x_axis, individual_y_axes_nl_mesu, ['-']*len(individual_y_axes_nl_mesu), ids, 'Subnet size', 'Running time (s)', 'Protein-protein interaction multiplex networks',colors=colors)
-    plot_group_of_lines(shared_x_axis, individual_y_axes_a_mesu, ['--']*len(individual_y_axes_a_mesu), ids, 'Subnet size', 'Running time (s)', 'Protein-protein interaction multiplex networks',plot_to_ax=ax,colors=colors)
+    fig,ax = plt.subplots(1,1,figsize=(0.79*6.4,0.79*4.8))
+    plt.rcParams.update({'lines.linewidth':2})
+    title = ''
+    plot_group_of_lines(shared_x_axis, individual_y_axes_nl_mesu, ['-']*len(individual_y_axes_nl_mesu), ids, 'Subnetwork size', r'$t$ (s)', title, plot_to_ax=ax,colors=colors)
+    plot_group_of_lines(shared_x_axis, individual_y_axes_a_mesu, ['--']*len(individual_y_axes_a_mesu), ids, 'Subnetwork size', r'$t$ (s)', title, plot_to_ax=ax,colors=colors)
+    plt.rcParams.update(plt.rcParamsDefault)
     legend_elements = []
     for ii,name in enumerate(ids):
         legend_elements.append(plt.Line2D([0],[0],marker='o',color=colors[ii],label=name,markerfacecolor=colors[ii],markersize=5,linewidth=0))
     if legend:
         ax.legend(handles=legend_elements,loc='center left',bbox_to_anchor=(1, 0.5))
+    if not legend:
+        fig.subplots_adjust(top=0.99,right=0.99)
     ax.set_yscale('log')
-    fig.tight_layout()
     fig.savefig(savename)
 
 def plot_ppi_net_sizes():
