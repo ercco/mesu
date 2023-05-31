@@ -458,20 +458,21 @@ def plot_ppi_net_sizes():
     n_layers = [7,4,7,6,7,6,7,3,6,7,7]
     n_edges = [19574,360,446,8826,45401,411,21753,2489,4670,304886,69324]
     x_values = [0.02,0.025,-0.025,0,0,0,-0.02,0,0,0,0]
-    text_y_multipliers = [0.9,0.8,1.2,1,1,1,1.1,1,1,1,1]
+    text_y_multipliers = [0.8,0.75,1.2,1,1,1,1.1,1,1,1,1]
     fig,ax = plt.subplots(figsize=(1.9,4.8))
     colors = ["#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3", "#fdb462", "#b3de69", "#fccde5", "#d9d9d9", "#bc80bd", "#ccebc5"]
     for ii,ee in enumerate(n_edges):
-        ax.scatter(x_values[ii],[ee],c=colors[ii],marker='o')
-        plt.text(0.1,ee*text_y_multipliers[ii],ids[ii],ha='left')
+        ax.scatter(x_values[ii],[ee],c=colors[ii],marker='o',s=50)
+        plt.text(0.028,ee*text_y_multipliers[ii],ids[ii],ha='left',size=12)
     ax.set_xlim([-0.04,0.4])
     ax.set_yscale('log')
-    ax.set_ylabel('Number of edges')
+    ax.set_ylabel('Number of edges',size=12)
     ax.xaxis.set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.spines['bottom'].set_visible(False)
     ax.spines['right'].set_visible(False)
     plt.tight_layout()
+    fig.subplots_adjust(top=0.97,right=1,bottom=0)
     fig.savefig('cpp_figures/edge_numbers.pdf')
 
 def make_table_run_times_for_cpp(filename):
