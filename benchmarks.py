@@ -753,6 +753,7 @@ def plot_absolute_times_vs_net_size(net_kw_subnet_generator,savename,title):
 def plot_scatter_times_vs_number_of_subnets(net_kw_subnet_generator_list,savename):
     nl_mesu_scatter = [[],[]]
     a_mesu_scatter = [[],[]]
+    success_list = []
     for net_kw_subnet_generator in net_kw_subnet_generator_list:
         for param_dict in net_kw_subnet_generator:
             outputfile = parse_output_savename(parse_network_savename(param_dict['net_function'],**param_dict['kwargs']),param_dict['subnet_size'])
@@ -763,19 +764,36 @@ def plot_scatter_times_vs_number_of_subnets(net_kw_subnet_generator_list,savenam
                 nl_mesu_scatter[1].append(nl_mesu_res[0])
                 a_mesu_scatter[0].append(a_mesu_res[1])
                 a_mesu_scatter[1].append(a_mesu_res[0])
+                success_list.append(param_dict)
             except:
                 pass
-    fig,ax = plt.subplots()
-    ax.scatter(nl_mesu_scatter[0],nl_mesu_scatter[1],color='darkred',marker='x',label='nl-mesu')
-    ax.scatter(a_mesu_scatter[0],a_mesu_scatter[1],color='darkgreen',marker='+',label='a-mesu')
+    fig,ax = plt.subplots(figsize=(0.7*6.4,0.7*4.8))
+    ax.scatter(nl_mesu_scatter[0],nl_mesu_scatter[1],color='darkred',marker='x',label='nlse',linewidth=1)
+    ax.scatter(a_mesu_scatter[0],a_mesu_scatter[1],color='darkgreen',marker='+',label='elsse',linewidth=1)
     print(a_mesu_scatter[0] == nl_mesu_scatter[0])
     print(a_mesu_scatter[1] == nl_mesu_scatter[1])
     ax.set_yscale('log')
     ax.set_xscale('log')
-    ax.set_xlabel('# of subnets')
-    ax.set_ylabel(r'$t$ (seconds)')
+    ax.set_xlabel('Number of subnetworks',size=12)
+    ax.set_ylabel(r'$t$ (s)',size=12)
     ax.legend()
+    fig.subplots_adjust(top=0.99,right=0.99,left=0.15,bottom=0.13)
     fig.savefig(savename)
+    return success_list
+
+def plot_scatter_convenience_script():
+    net_kw_subnet_generator_list = []
+    for nn in (1000,1500,2000,2500,3000,3500,4000,4500,5000,10000):
+        for ll in (1,2,3,4):
+            # count 3 and 4 layers only for 1000 nodes (very incomplete data for others)
+            if ll > 2 and nn > 1000:
+                continue
+            net_kw_subnet_generator_list.append(make_geo_mlayer_generator(layers_in_second_aspect=ll,nnodes=nn))
+    savename = 'cpp_benchmark_figures/absolute_scatter_geo.pdf'
+    success_list = plot_scatter_times_vs_number_of_subnets(net_kw_subnet_generator_list, savename)
+    for kwd in success_list:
+        (nnodes,nl_first,layers_in_second_aspect) = kwd['kwargs']['l']
+        print(nnodes,nl_first,layers_in_second_aspect)
 
 def plot_combined_convenience_script(case):
     # case 1 : two-aspect multilayer geometric (4 imgs)
@@ -813,7 +831,7 @@ def plot_combined_convenience_script(case):
         axs[1][1].legend(ncols=4)
         fig.subplots_adjust(wspace=0, hspace=0)
         fig.subplots_adjust(top=0.99,right=0.99)
-        fig.supxlabel('           Number of layers in first aspect')
+        fig.supxlabel('           Number of elementary layers in first aspect')
         fig.supylabel(r'         $t_{elsse}$ / $t_{nlse}$')
         fig.savefig('cpp_benchmark_figures/geo_mlayer_combined_1000_10000.pdf')
         plt.rcParams.update(plt.rcParamsDefault)
@@ -845,7 +863,7 @@ def plot_combined_convenience_script(case):
         plt.setp(xticklabs[::2], visible=True)
         fig.subplots_adjust(wspace=0, hspace=0)
         fig.subplots_adjust(top=0.99,right=0.99,bottom=0.2)
-        fig.supxlabel('           Number of layers in first aspect')
+        fig.supxlabel('           Number of elementary layers in first aspect')
         fig.supylabel(r'         $t_{elsse}$ / $t_{nlse}$')
         fig.savefig('cpp_benchmark_figures/mplex_geo_er_combined.pdf')
         plt.rcParams.update(plt.rcParamsDefault)
