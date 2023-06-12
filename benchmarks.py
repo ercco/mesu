@@ -804,11 +804,11 @@ def plot_scatter_convenience_script(plot_fit_lines=True):
         for x in fit_x_2:
             fit_y_2.append(10**-5 * (x**1))
         ax.plot(fit_x_1,fit_y_1,color='k',linestyle='--')
-        plt.annotate('',xy=(1500,300),xytext=(2600,10000),arrowprops=dict(arrowstyle='simple,tail_width=0.1',facecolor='black'))
-        plt.text(800,12000,r'$10^{-1.5} \times n_{subnets}^{1.2}$',fontsize=12)
+        plt.annotate('',xy=(1500,300),xytext=(1200,16000),arrowprops=dict(arrowstyle='simple,tail_width=0.1',facecolor='black'))
+        plt.text(800,20000,r'$t = 10^{-1.5} \times n_{subnets}^{1.2}$',fontsize=12)
         ax.plot(fit_x_2,fit_y_2,color='k',linestyle='--')
         plt.annotate('',xy=(1000000,6),xytext=(800000,0.25),arrowprops=dict(arrowstyle='simple,tail_width=0.1',facecolor='black'))
-        plt.text(200000,0.1,r'$10^{-5} \times n_{subnets}$',fontsize=12)
+        plt.text(120000,0.1,r'$t = 10^{-5} \times n_{subnets}$',fontsize=12)
         fig.savefig(savename)
     else:
         success_list = plot_scatter_times_vs_number_of_subnets(net_kw_subnet_generator_list, savename)
