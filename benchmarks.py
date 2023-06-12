@@ -778,10 +778,13 @@ def plot_scatter_times_vs_number_of_subnets(net_kw_subnet_generator_list,savenam
     ax.set_ylabel(r'$t$ (s)',size=12)
     ax.legend()
     fig.subplots_adjust(top=0.99,right=0.99,left=0.15,bottom=0.13)
-    fig.savefig(savename)
-    return success_list
+    if savename:
+        fig.savefig(savename)
+        return success_list
+    else:
+        return success_list,fig,ax
 
-def plot_scatter_convenience_script():
+def plot_scatter_convenience_script(plot_fit_lines=True):
     net_kw_subnet_generator_list = []
     for nn in (1000,1500,2000,2500,3000,3500,4000,4500,5000,10000):
         for ll in (1,2,3,4):
@@ -790,7 +793,25 @@ def plot_scatter_convenience_script():
                 continue
             net_kw_subnet_generator_list.append(make_geo_mlayer_generator(layers_in_second_aspect=ll,nnodes=nn))
     savename = 'cpp_benchmark_figures/absolute_scatter_geo.pdf'
-    success_list = plot_scatter_times_vs_number_of_subnets(net_kw_subnet_generator_list, savename)
+    if plot_fit_lines:
+        success_list,fig,ax = plot_scatter_times_vs_number_of_subnets(net_kw_subnet_generator_list, savename=None)
+        fit_x_1 = np.logspace(3,6.3,num=50,base=10)
+        fit_x_2 = np.logspace(3.40,6.47,num=50,base=10)
+        fit_y_1 = []
+        fit_y_2 =  []
+        for x in fit_x_1:
+            fit_y_1.append(10**-1.5 * (x**1.2))
+        for x in fit_x_2:
+            fit_y_2.append(10**-5 * (x**1))
+        ax.plot(fit_x_1,fit_y_1,color='k',linestyle='--')
+        plt.annotate('',xy=(1500,300),xytext=(2600,10000),arrowprops=dict(arrowstyle='simple,tail_width=0.1',facecolor='black'))
+        plt.text(800,12000,r'$10^{-1.5} \times n_{subnets}^{1.2}$',fontsize=12)
+        ax.plot(fit_x_2,fit_y_2,color='k',linestyle='--')
+        plt.annotate('',xy=(1000000,6),xytext=(800000,0.25),arrowprops=dict(arrowstyle='simple,tail_width=0.1',facecolor='black'))
+        plt.text(200000,0.1,r'$10^{-5} \times n_{subnets}$',fontsize=12)
+        fig.savefig(savename)
+    else:
+        success_list = plot_scatter_times_vs_number_of_subnets(net_kw_subnet_generator_list, savename)
     for kwd in success_list:
         (nnodes,nl_first,layers_in_second_aspect) = kwd['kwargs']['l']
         print(nnodes,nl_first,layers_in_second_aspect)
@@ -863,7 +884,7 @@ def plot_combined_convenience_script(case):
         plt.setp(xticklabs[::2], visible=True)
         fig.subplots_adjust(wspace=0, hspace=0)
         fig.subplots_adjust(top=0.99,right=0.99,bottom=0.2)
-        fig.supxlabel('           Number of elementary layers in first aspect')
+        fig.supxlabel('           Number of layers')
         fig.supylabel(r'         $t_{elsse}$ / $t_{nlse}$')
         fig.savefig('cpp_benchmark_figures/mplex_geo_er_combined.pdf')
         plt.rcParams.update(plt.rcParamsDefault)
