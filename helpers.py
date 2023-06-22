@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
 import math
+import collections
 
 class persistent(object):
     def __init__(self,function):
@@ -286,3 +287,18 @@ def annotate_heatmap(im, data=None, valfmt="{x:.2f}",
             texts.append(text)
 
     return texts
+
+def reformat_ppi_file(inputfile,outputfile):
+    with open(inputfile,'r') as f:
+        with open(outputfile,'w') as g:
+            nodes_by_layer = collections.defaultdict(set)
+            for line in f:
+                layer, node1, node2, edgeweight = line.split()
+                nodes_by_layer[layer] = nodes_by_layer[layer].union((node1,node2))
+                reformatted_line = ' '.join((node1, layer, node2, layer))
+                g.write(reformatted_line+'\n')
+            # interlayer edges
+            for layer1,layer2 in itertools.combinations(nodes_by_layer.keys(),2):
+                for node in nodes_by_layer[layer1].intersection(nodes_by_layer[layer2]):
+                    reformatted_line = ' '.join((node,layer1,node,layer2))
+                    g.write(reformatted_line+'\n')
