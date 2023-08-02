@@ -1,5 +1,8 @@
-# MESU
-Multilayer EnumerateSubgraphs
+# Subnetwork enumeration algorithms for multilayer networks
+
+See https://doi.org/10.48550/arXiv.2308.00083 for the theoretical background.
+
+This repository contains two algorithms for enumerating subnetworks of multilayer networks, both implemented in Python and in C++. For the Python implementation, the [pymnet](http://www.mkivela.com/pymnet/) library is used. C++ version uses Boost Graph Library.
 
 Compile c++ with:
 `g++ -DN_ASPECTS=n_aspects -std=c++17 -O3 mesu.cpp -o mesu_n_aspects.out`
