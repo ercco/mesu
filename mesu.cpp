@@ -164,6 +164,20 @@ class MLnet {
         }
      }
      std::pair<EdgeIterator,EdgeIterator> get_all_mledges() const {return edges(m);}
+     // return mledges as pairs of nls
+     std::vector<std::pair<NL,NL>> get_all_mledges_nls() const {
+        std::vector<std::pair<NL,NL>> all_mledges_nls;
+        std::pair<EdgeIterator,EdgeIterator> edge_iter_pair = get_all_mledges();
+        for (EdgeIterator edge = edge_iter_pair.first; edge != edge_iter_pair.second; edge++) {
+            Vertex src = source(*edge,m);
+            Vertex trg = target(*edge,m);
+            NL src_nl = get_nl_from_id(src);
+            NL trg_nl = get_nl_from_id(trg);
+            std::pair<NL,NL> current_edge_nls = std::make_pair(src_nl,trg_nl);
+            all_mledges_nls.push_back(current_edge_nls);
+        }
+        return all_mledges_nls;
+     }
      void print_all_mledges() const {
         std::pair<EdgeIterator,EdgeIterator> edge_iter_pair = get_all_mledges();
         for (EdgeIterator edge = edge_iter_pair.first; edge != edge_iter_pair.second; edge++) {
@@ -533,6 +547,41 @@ void a_mesu(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, ValidSub
         extend_a_mesu(mlnet,size,S,extension,gamma,valid_subnetwork_handler);
     }
     return;
+}
+
+// Aggregation and enumeration
+
+std::array<int,N_ASPECTS+1> set_nonnode_aspects_to_zero(const NL& nl) {
+    // set els in aspects other than nodes to zero
+    // i.e. (1,2,3,4) becomes (1,0,0,0)
+    std::array<int,N_ASPECTS+1> new_el;
+    // copy zeroth aspect el to new nl
+    new_el[0] = nl.get_el()[0];
+    // set all other aspects' els to 0
+    for (int ii=1; ii<N_ASPECTS+1; ii++) {new_el[ii] = 0;}
+    return new_el;
+}
+
+MLnet aggregate_to_single_layer(const MLnet& mlnet) {
+    // create net with the same number of aspects but only one layer (0,0,...,0)
+    // i.e. aggregate w.r.t. the zeroth aspect (nodes) and squish all other aspects
+    // any edge between nodes is made into an edge in the aggregated network
+    MLnet aggregated_net;
+    // add nodelayers
+    std::pair<std::vector<NL>,std::vector<Vertex>> all_orig_nls = mlnet.get_all_nls();
+    for (NL orig_nl : all_orig_nls.first) {
+        std::array<int,N_ASPECTS+1> agg_net_nl = set_nonnode_aspects_to_zero(orig_nl);
+        aggregated_net.add_nodelayer(agg_net_nl);
+    }
+    // add edges
+    std::vector<std::pair<NL,NL>> mledges = mlnet.get_all_mledges_nls();
+    for (std::pair<NL,NL> orig_edge : mledges) {
+        // make new edge where only node identity is kept
+        std::array<int,N_ASPECTS+1> agg_net_nl_1 = set_nonnode_aspects_to_zero(orig_edge.first);
+        std::array<int,N_ASPECTS+1> agg_net_nl_2 = set_nonnode_aspects_to_zero(orig_edge.second);
+        aggregated_net.add_mledge(agg_net_nl_1,agg_net_nl_2);
+    }
+    return aggregated_net;
 }
 
 // file input -------------------------------------------------------------------------------------------------------------------
