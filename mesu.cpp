@@ -562,7 +562,7 @@ std::array<int,N_ASPECTS+1> set_nonnode_aspects_to_zero(const NL& nl) {
     return new_el;
 }
 
-MLnet aggregate_to_single_layer(const MLnet& mlnet) {
+MLnet aggregate_to_single_layer(const MLnet& mlnet, bool add_self_edges = false) {
     // create net with the same number of aspects but only one layer (0,0,...,0)
     // i.e. aggregate w.r.t. the zeroth aspect (nodes) and squish all other aspects
     // any edge between nodes is made into an edge in the aggregated network
@@ -579,7 +579,10 @@ MLnet aggregate_to_single_layer(const MLnet& mlnet) {
         // make new edge where only node identity is kept
         std::array<int,N_ASPECTS+1> agg_net_nl_1 = set_nonnode_aspects_to_zero(orig_edge.first);
         std::array<int,N_ASPECTS+1> agg_net_nl_2 = set_nonnode_aspects_to_zero(orig_edge.second);
-        aggregated_net.add_mledge(agg_net_nl_1,agg_net_nl_2);
+        // self-edge?
+        if (agg_net_nl_1 != agg_net_nl_2 or add_self_edges) {
+            aggregated_net.add_mledge(agg_net_nl_1,agg_net_nl_2);
+        }
     }
     return aggregated_net;
 }
@@ -901,6 +904,14 @@ void test_write_to_argument_file(const std::string& fname) {
 }
 
 
+void test_aggregation(const std::string& inputfile) {
+    MLnet mlnet = load_edge_file(inputfile);
+    MLnet agg_mlnet = aggregate_to_single_layer(mlnet);
+    agg_mlnet.print_all_nls();
+    std::cout << "\n";
+    agg_mlnet.print_all_mledges();
+}
+
 // main ----------------------------------------------------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
@@ -1049,6 +1060,7 @@ int main(int argc, char* argv[]) {
     std::string problem_savename = "square_edge_result";
     std::array<int,N_ASPECTS+1> size = parse_size("2,2,2,2",',');
     run_edge_file(problem_file, problem_savename, size);
+    test_aggregation(args[1]);
     */
 }
 
