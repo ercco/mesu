@@ -587,6 +587,100 @@ MLnet aggregate_to_single_layer(const MLnet& mlnet, bool add_self_edges = false)
     return aggregated_net;
 }
 
+// generate all k-combinations
+template <typename T>
+void generateCombinations(const std::unordered_set<T>& inputSet, int k, typename std::unordered_set<T>::const_iterator start, std::unordered_set<T>& currentCombination, std::vector<std::unordered_set<T>>& result) {
+    if (k == 0) {
+        result.push_back(currentCombination);
+        return;
+    }
+    for (auto it = start; it != inputSet.end(); ++it) {
+        currentCombination.insert(*it);
+        generateCombinations(inputSet, k - 1, std::next(it), currentCombination, result);
+        currentCombination.erase(*it);
+    }
+}
+
+template <typename T>
+std::vector<std::unordered_set<T>> generateAllCombinations(const std::unordered_set<T>& inputSet, int k) {
+    std::vector<std::unordered_set<T>> result;
+    std::unordered_set<T> currentCombination;
+    if (k <= 0 || k > inputSet.size()) {
+        // Return an empty vector for invalid k values
+        return result;
+    }
+    generateCombinations(inputSet, k, inputSet.begin(), currentCombination, result);
+    return result;
+}
+
+// output handler which checks all layer combinations
+class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
+    // should be initialized with a set of layer combinations that will be checked
+    // and with original network so that connectedness of actual subnetwork can be checked
+    // NB: maybe initialization with the original net is enough?
+    // layer combinations can be created within the class in the initialization function
+    // also needs another subnetwork handler for processing functionality
+    MLnet mlnet;
+    // output handler
+    ValidSubnetworkHandler valid_subnetwork_handler;
+    // required size of subnetworks
+    std::array<int,N_ASPECTS+1> size;
+    // all elementary layers of mlnet
+    std::array<std::unordered_set<int>,N_ASPECTS+1> S_total;
+    // all possible combinations of all elementary layers (aspect >= 1), combination size from size
+    // aspect - combination - elementary layer
+    // so we can iterate over all possible subnets (nodes come from enumeration on agg net)
+    std::vector<std::vector<std::unordered_set<int>>> all_layer_combinations;
+    public:
+     // initialization with init_mlnet (multilayer network)
+     AggregatedEnumerationSubnetworkChecker(const MLnet& init_mlnet, ValidSubnetworkHandler& init_valid_subnetwork_handler, const std::array<int,N_ASPECTS+1>& init_size) : mlnet(init_mlnet),valid_subnetwork_handler(init_valid_subnetwork_handler),size(init_size) {
+        // construct S_total (all elementary layers for each aspect)
+        // get all nodelayers for span calculation
+        std::pair<std::vector<NL>,std::vector<Vertex>> all_nls_pair = mlnet.get_all_nls();
+        // create unordered set for spanned_space
+        std::unordered_set<NL> VM_total(all_nls_pair.first.begin(), all_nls_pair.first.end());
+        // use spanned_space from nl-mesu to get span of network (from all nodelayers)
+        S_total = spanned_space(VM_total);
+        // get all possible combinations of all elementary layers, starting from aspect 1
+        for (int ii=1; ii < N_ASPECTS+1; ii++) {
+            std::vector<std::unordered_set<int>> all_curr_combinations = generateAllCombinations(S_total[ii],size[ii]);
+            all_layer_combinations.push_back(all_curr_combinations);
+        }
+     }
+     // for debug
+     void print_all_layer_combinations() {
+        for (const auto& aspect_comp : all_layer_combinations) {
+            for (const auto& combination : aspect_comp) {
+                std::cout << "{ ";
+                for (const auto& element : combination) {
+                    std::cout << element << ' ';
+                }
+                std::cout << "} combination printed\n";
+            }
+        std::cout << "aspect printed\n";
+        }
+     }
+     // TODO: process_subnet
+     // takes the aggregated subnet and checks all combinations of layers to find multilayer subnets
+     // then calls process_subnet of valid_subnetwork_handler
+     void process_subnet(const std::array<std::unordered_set<int>,N_ASPECTS+1> S) override {}
+};
+
+void aggregate_and_enumerate(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, ValidSubnetworkHandler& valid_subnetwork_handler) {
+    // create aggregated graph (single-layer)
+    MLnet aggregated_net = aggregate_to_single_layer(mlnet);
+    // enumerate all subgraphs of the aggregated graph, while setting non-node sizes to 1
+    // use nl-mesu for enumeration
+    std::array<int,N_ASPECTS+1> aggregated_size;
+    aggregated_size[0] = size[0];
+    for (int ii=1; ii<N_ASPECTS+1; ii++) {aggregated_size[ii] = 1;}
+    // TODO: create agg_check which checks all layer combinations when process_subnet is called
+    AggregatedEnumerationSubnetworkChecker agg_check = AggregatedEnumerationSubnetworkChecker(mlnet,valid_subnetwork_handler,size);
+    agg_check.print_all_layer_combinations();
+    // TODO: run nl-mesu on aggregated network with agg_check as valid_subnetwork_handler
+    //nl_mesu(aggregated_net,aggregated_size,valid_subnetwork_handler)
+}
+
 // file input -------------------------------------------------------------------------------------------------------------------
 
 MLnet load_edge_file(const std::string& filename) {
@@ -910,6 +1004,14 @@ void test_aggregation(const std::string& inputfile) {
     agg_mlnet.print_all_nls();
     std::cout << "\n";
     agg_mlnet.print_all_mledges();
+    std::cout << "\n";
+    SubnetworkNumberCounter dummy_subnet_checker;
+    // set sizes all to 2
+    std::array<int,N_ASPECTS+1> size;
+    for (int ii = 0; ii < N_ASPECTS+1; ii++) {size[ii] = 2;}
+    // set aspect 1 size to 3
+    size[1] = 3;
+    aggregate_and_enumerate(mlnet, size, dummy_subnet_checker);
 }
 
 // main ----------------------------------------------------------------------------------------------------------------------
