@@ -656,6 +656,9 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
     // ex: {1,3,2}, {0,3,2}, {0,1,2}, {0,1,3}
     // for size = 3 and elementary layers = (0,1,2,3)
     std::vector<std::vector<std::unordered_set<int>>> all_layer_combinations;
+    // all layer combinations combined to make all subnets (other than for the nodes, which is found by the algorithm)
+    // NB! first set [0] of elem layers corresponds to aspect 1!!!
+    std::vector<std::vector<std::unordered_set<int>>> all_subnets_without_nodes_to_be_checked;
     public:
      // initialization with init_mlnet (multilayer network)
      AggregatedEnumerationSubnetworkChecker(const MLnet& init_mlnet, ValidSubnetworkHandler& init_valid_subnetwork_handler, const std::array<int,N_ASPECTS+1>& init_size) : mlnet(init_mlnet),valid_subnetwork_handler(init_valid_subnetwork_handler),size(init_size) {
@@ -671,6 +674,9 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
             std::vector<std::unordered_set<int>> all_curr_combinations = generateAllCombinations(S_total[ii],size[ii]);
             all_layer_combinations.push_back(all_curr_combinations);
         }
+        // construct all_subnets_without_nodes_to_be_checked
+        std::vector<std::unordered_set<int>> current_combination;
+        generateSubnetworksWithoutNodes(all_layer_combinations, current_combination, 0, all_subnets_without_nodes_to_be_checked);
      }
      // for debug
      void print_all_layer_combinations() {
@@ -700,23 +706,18 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
             std::cout << std::endl;
         }
      }
-     // TODO: process_subnet
+     // TODO: process_subnet is done except VALID_SUBNETWORK_HANDLER.PROCESS_SUBNET DOES NOTHING!!!!???
      // takes the aggregated subnet and checks all combinations of layers to find multilayer subnets
      // then checks each candidate for being connected
      // then calls process_subnet of valid_subnetwork_handler
-     // TODO: the creation of all_subnets_without_nodes_to_be_checked should happen in the initialization
      void process_subnet(const std::array<std::unordered_set<int>,N_ASPECTS+1> S) override {
         std::cout << "Got to process_subnet!\n";
         std::unordered_set<int> subnet_nodes = S[0];
         std::cout << "Subnet nodes are:\n";
         for (auto elem : subnet_nodes) {std::cout << " "; std::cout << elem; std::cout << " ";}
         std::cout << "\n";
-        // get the cross product of all possible combinations from all_layer_combinations
-        std::vector<std::vector<std::unordered_set<int>>> all_subnets_without_nodes_to_be_checked;
-        std::vector<std::unordered_set<int>> current_combination;
-        generateSubnetworksWithoutNodes(all_layer_combinations, current_combination, 0, all_subnets_without_nodes_to_be_checked);
+        // check all possible multilayer subnets
         for (const auto& combination : all_subnets_without_nodes_to_be_checked) {
-            //for (const auto& set_in_combination : combination) {
                 std::cout << "Checking a combination...\n";
                 // make new subnet that is actually multilayer
                 std::array<std::unordered_set<int>,N_ASPECTS+1> S_multilayer;
@@ -734,7 +735,6 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
                 std::cout << "\n";
                 // TODO: why is valid_subnetwork_handler.process_subnet not doing anything???
                 if (sub.is_connected()) {std::cout << "Subnet is connected\n"; valid_subnetwork_handler.process_subnet(S_multilayer);}
-            //}
         }
      }
 };
@@ -747,14 +747,14 @@ void aggregate_and_enumerate(const MLnet& mlnet, const std::array<int,N_ASPECTS+
     std::array<int,N_ASPECTS+1> aggregated_size;
     aggregated_size[0] = size[0];
     for (int ii=1; ii<N_ASPECTS+1; ii++) {aggregated_size[ii] = 1;}
-    // TODO: create agg_check which checks all layer combinations when process_subnet is called
+    // create agg_check which includes valid_subnetwork_handler inside it
     AggregatedEnumerationSubnetworkChecker agg_check = AggregatedEnumerationSubnetworkChecker(mlnet,valid_subnetwork_handler,size);
+    // debug printing
     agg_check.print_all_layer_combinations();
     std::cout << "\n";
     agg_check.print_all_subnets_without_nodes();
-    // TODO: run nl-mesu on aggregated network with agg_check as valid_subnetwork_handler
     std::cout << "Running nl-mesu...\n";
-    // WHY IS AGG_CHECK NOT DOING ANYTHING???????????????
+    // TODO: WHY IS AGG_CHECK VALID_SUBNETWORK_HANLDER NOT DOING ANYTHING???????????????
     nl_mesu(aggregated_net,aggregated_size,agg_check);
 }
 
