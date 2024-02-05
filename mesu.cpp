@@ -613,6 +613,28 @@ std::vector<std::unordered_set<T>> generateAllCombinations(const std::unordered_
     return result;
 }
 
+// generate subnets (without nodes, so aspect1 and up all subnet spaces) from sets of elementary layers
+// warning to reader: possibly unreadable code (maybe this and above code could be reworked together?)
+void generateSubnetworksWithoutNodes(const std::vector<std::vector<std::unordered_set<int>>>& all_layer_combinations,
+                           std::vector<std::unordered_set<int>>& current_combination,
+                           int current_aspect,
+                           std::vector<std::vector<std::unordered_set<int>>>& result) {
+    if (current_aspect == all_layer_combinations.size()) {
+        // Base case: reached the end of the outer vector, add the current combination to the result
+        result.push_back(current_combination);
+        return;
+    }
+    // Iterate over sets in the current layer
+    for (const auto& set_in_layer : all_layer_combinations[current_aspect]) {
+        // Add the set to the current combination
+        current_combination.push_back(set_in_layer);
+        // Recursively generate combinations for the next layer
+        generateSubnetworksWithoutNodes(all_layer_combinations, current_combination, current_aspect + 1, result);
+        // Remove the last set added to backtrack
+        current_combination.pop_back();
+    }
+}
+
 // output handler which checks all layer combinations
 class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
     // should be initialized with a set of layer combinations that will be checked
@@ -630,6 +652,9 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
     // all possible combinations of all elementary layers (aspect >= 1), combination size from size
     // aspect - combination - elementary layer
     // so we can iterate over all possible subnets (nodes come from enumeration on agg net)
+    // for every aspect i, we have all the elementary layer combinations of size s_i
+    // ex: {1,3,2}, {0,3,2}, {0,1,2}, {0,1,3}
+    // for size = 3 and elementary layers = (0,1,2,3)
     std::vector<std::vector<std::unordered_set<int>>> all_layer_combinations;
     public:
      // initialization with init_mlnet (multilayer network)
@@ -660,10 +685,32 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
         std::cout << "aspect printed\n";
         }
      }
+     void print_all_subnets_without_nodes() {
+         std::vector<std::vector<std::unordered_set<int>>> all_subnets_without_nodes_to_be_checked;
+         std::vector<std::unordered_set<int>> current_combination;
+         generateSubnetworksWithoutNodes(all_layer_combinations, current_combination, 0, all_subnets_without_nodes_to_be_checked);
+         for (const auto& combination : all_subnets_without_nodes_to_be_checked) {
+            for (const auto& set_in_combination : combination) {
+                std::cout << "{ ";
+                for (int element : set_in_combination) {
+                    std::cout << element << " ";
+                }
+                std::cout << "} ";
+            }
+            std::cout << std::endl;
+        }
+     }
      // TODO: process_subnet
      // takes the aggregated subnet and checks all combinations of layers to find multilayer subnets
      // then calls process_subnet of valid_subnetwork_handler
-     void process_subnet(const std::array<std::unordered_set<int>,N_ASPECTS+1> S) override {}
+     // should it just check connectedness?
+     void process_subnet(const std::array<std::unordered_set<int>,N_ASPECTS+1> S) override {
+        std::unordered_set<int> subnet_nodes = S[0];
+        // get the cross product of all possible combinations from all_layer_combinations
+        std::vector<std::vector<std::unordered_set<int>>> all_subnets_without_nodes_to_be_checked;
+        std::vector<std::unordered_set<int>> current_combination;
+        generateSubnetworksWithoutNodes(all_layer_combinations, current_combination, 0, all_subnets_without_nodes_to_be_checked);
+     }
 };
 
 void aggregate_and_enumerate(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, ValidSubnetworkHandler& valid_subnetwork_handler) {
@@ -677,6 +724,8 @@ void aggregate_and_enumerate(const MLnet& mlnet, const std::array<int,N_ASPECTS+
     // TODO: create agg_check which checks all layer combinations when process_subnet is called
     AggregatedEnumerationSubnetworkChecker agg_check = AggregatedEnumerationSubnetworkChecker(mlnet,valid_subnetwork_handler,size);
     agg_check.print_all_layer_combinations();
+    std::cout << "\n";
+    agg_check.print_all_subnets_without_nodes();
     // TODO: run nl-mesu on aggregated network with agg_check as valid_subnetwork_handler
     //nl_mesu(aggregated_net,aggregated_size,valid_subnetwork_handler)
 }
@@ -1151,7 +1200,7 @@ int main(int argc, char* argv[]) {
     //      print : subnetworks
     // algo : "nl-mesu" or "a-mesu" or "both"
     std::vector<std::string> args(argv, argv+argc);
-    run_edge_file(args);
+    //run_edge_file(args);
     /*
     std::string problem_file = "cpp_benchmark_networks/er_multilayer_any_aspects_deg_1_or_greater_l=(40,25)_p=0.02";
     std::string problem_savename = "problem_file_rerun";
@@ -1162,8 +1211,9 @@ int main(int argc, char* argv[]) {
     std::string problem_savename = "square_edge_result";
     std::array<int,N_ASPECTS+1> size = parse_size("2,2,2,2",',');
     run_edge_file(problem_file, problem_savename, size);
-    test_aggregation(args[1]);
     */
+    test_aggregation(args[1]);
+    
 }
 
 
