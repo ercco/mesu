@@ -717,6 +717,7 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
      }
      // takes the aggregated subnet and checks all combinations of layers to find multilayer subnets
      // then checks each candidate for being connected
+     // NB! Also has to check that the subnetwork is minimal!!!
      // then calls process_subnet of valid_subnetwork_handler_ptr
      void process_subnet(const std::array<std::unordered_set<int>,N_ASPECTS+1> S) override {
         //std::cout << "Got to process_subnet!\n";
@@ -742,7 +743,17 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
                 //print_subnet(S_multilayer,std::cout);
                 //std::cout << "\n";
                 //if (sub.is_connected()) {std::cout << "Subnet is connected\n"; std::cout << typeid(valid_subnetwork_handler).name(); valid_subnetwork_handler.process_subnet(S_multilayer);}
-                if (sub.is_connected()) {valid_subnetwork_handler_ptr->process_subnet(S_multilayer); total_number_of_subnetworks++;}
+                // here, we check connectedness and minimality
+                if (sub.is_connected()) {
+                    // iterate over nl's and make valid_S from their elem layers, compare to S
+                    std::pair<std::vector<NL>,std::vector<Vertex>> all_nls = sub.get_all_nls();
+                    std::array<std::unordered_set<int>,N_ASPECTS+1> S_valid;
+                    for (NL nl : all_nls.first) {std::array<int,N_ASPECTS+1> el=nl.get_el(); for (int ii=0; ii<N_ASPECTS+1; ii++) {S_valid[ii].insert(el[ii]);}}
+                    if (S_multilayer == S_valid) {
+                        valid_subnetwork_handler_ptr->process_subnet(S_multilayer);
+                        total_number_of_subnetworks++;
+                    }
+                }
                 //if (sub.is_connected()) {total_number_of_subnetworks++;}
         }
      }
