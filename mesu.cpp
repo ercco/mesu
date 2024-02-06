@@ -876,6 +876,14 @@ void run_time(std::string inputfile, std::string outputfile, std::array<int,N_AS
         auto tdiff = end - start;
         output_stream << "a-mesu "<< std::chrono::duration<double> (tdiff).count() << " " << subnet_number_counter.get_total_number() << "\n";
     }
+    if (algo == "aggregated") {
+        SubnetworkNumberCounter subnet_number_counter;
+        auto start = std::chrono::steady_clock::now();
+        aggregate_and_enumerate(mlnet,size,&subnet_number_counter);
+        auto end = std::chrono::steady_clock::now();
+        auto tdiff = end - start;
+        output_stream << "aggregated "<< std::chrono::duration<double> (tdiff).count() << " " << subnet_number_counter.get_total_number() << "\n";
+    }
     return;
 }
 
@@ -1244,9 +1252,9 @@ int main(int argc, char* argv[]) {
     //      time : elapsed time and subnetwork counts
     //      count : subnetwork counts
     //      print : subnetworks
-    // algo : "nl-mesu" or "a-mesu" or "both"
+    // algo : "nl-mesu" or "a-mesu" or "both" or "aggregated"
     std::vector<std::string> args(argv, argv+argc);
-    //run_edge_file(args);
+    run_edge_file(args);
     /*
     std::string problem_file = "cpp_benchmark_networks/er_multilayer_any_aspects_deg_1_or_greater_l=(40,25)_p=0.02";
     std::string problem_savename = "problem_file_rerun";
@@ -1258,7 +1266,7 @@ int main(int argc, char* argv[]) {
     std::array<int,N_ASPECTS+1> size = parse_size("2,2,2,2",',');
     run_edge_file(problem_file, problem_savename, size);
     */
-    test_aggregation(args[1]);
+    //test_aggregation(args[1]);
     
 }
 
