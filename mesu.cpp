@@ -904,6 +904,11 @@ void run_count(std::string inputfile, std::string outputfile, std::array<int,N_A
         a_mesu(mlnet,size,subnet_number_counter);
         output_stream << "a-mesu " << subnet_number_counter.get_total_number() << "\n";
     }
+    if (algo == "aggregated") {
+        SubnetworkNumberCounter subnet_number_counter;
+        aggregate_and_enumerate(mlnet,size,&subnet_number_counter);
+        output_stream << "aggregated " << subnet_number_counter.get_total_number() << "\n";
+    }
     return;
 }
 
@@ -921,6 +926,10 @@ void run_print(std::string inputfile, std::string outputfile, std::array<int,N_A
     if (algo == "a-mesu" or algo == "both") {
         SubnetworkPrinter subnet_printer(output_stream);
         a_mesu(mlnet,size,subnet_printer);
+    }
+    if (algo == "aggregated") {
+        SubnetworkPrinter subnet_printer(output_stream);
+        aggregate_and_enumerate(mlnet,size,&subnet_printer);
     }
     return;
 }
