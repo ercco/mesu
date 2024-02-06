@@ -643,8 +643,11 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
     // layer combinations can be created within the class in the initialization function
     // also needs another subnetwork handler for processing functionality
     MLnet mlnet;
-    // output handler
-    ValidSubnetworkHandler valid_subnetwork_handler;
+    // output handler (passed as pointer, otherwise copy constructor will create another object and output will not work)
+    // needs to be passed as &valid_subnetwork_handler when creating this object
+    ValidSubnetworkHandler* valid_subnetwork_handler_ptr;
+    // backup: manual counting
+    unsigned long long int total_number_of_subnetworks;
     // required size of subnetworks
     std::array<int,N_ASPECTS+1> size;
     // all elementary layers of mlnet
@@ -661,7 +664,7 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
     std::vector<std::vector<std::unordered_set<int>>> all_subnets_without_nodes_to_be_checked;
     public:
      // initialization with init_mlnet (multilayer network)
-     AggregatedEnumerationSubnetworkChecker(const MLnet& init_mlnet, ValidSubnetworkHandler& init_valid_subnetwork_handler, const std::array<int,N_ASPECTS+1>& init_size) : mlnet(init_mlnet),valid_subnetwork_handler(init_valid_subnetwork_handler),size(init_size) {
+     AggregatedEnumerationSubnetworkChecker(const MLnet& init_mlnet, ValidSubnetworkHandler* init_valid_subnetwork_handler_ptr, const std::array<int,N_ASPECTS+1>& init_size) : mlnet(init_mlnet),valid_subnetwork_handler_ptr(init_valid_subnetwork_handler_ptr),size(init_size) {
         // construct S_total (all elementary layers for each aspect)
         // get all nodelayers for span calculation
         std::pair<std::vector<NL>,std::vector<Vertex>> all_nls_pair = mlnet.get_all_nls();
@@ -677,7 +680,13 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
         // construct all_subnets_without_nodes_to_be_checked
         std::vector<std::unordered_set<int>> current_combination;
         generateSubnetworksWithoutNodes(all_layer_combinations, current_combination, 0, all_subnets_without_nodes_to_be_checked);
+        // set total_number_of_subnetworks to 0
+        total_number_of_subnetworks = 0;
      }
+     // attempt to get output handler to work
+     //void set_valid_subnetwork_handler(ValidSubnetworkHandler& init_valid_subnetwork_handler) {valid_subnetwork_handler = init_valid_subnetwork_handler;}
+     // the second attempt: manual counting
+     unsigned long long int get_total_number() {return total_number_of_subnetworks;}
      // for debug
      void print_all_layer_combinations() {
         for (const auto& aspect_comp : all_layer_combinations) {
@@ -706,19 +715,18 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
             std::cout << std::endl;
         }
      }
-     // TODO: process_subnet is done except VALID_SUBNETWORK_HANDLER.PROCESS_SUBNET DOES NOTHING!!!!???
      // takes the aggregated subnet and checks all combinations of layers to find multilayer subnets
      // then checks each candidate for being connected
-     // then calls process_subnet of valid_subnetwork_handler
+     // then calls process_subnet of valid_subnetwork_handler_ptr
      void process_subnet(const std::array<std::unordered_set<int>,N_ASPECTS+1> S) override {
-        std::cout << "Got to process_subnet!\n";
+        //std::cout << "Got to process_subnet!\n";
         std::unordered_set<int> subnet_nodes = S[0];
-        std::cout << "Subnet nodes are:\n";
-        for (auto elem : subnet_nodes) {std::cout << " "; std::cout << elem; std::cout << " ";}
-        std::cout << "\n";
+        //std::cout << "Subnet nodes are:\n";
+        //for (auto elem : subnet_nodes) {std::cout << " "; std::cout << elem; std::cout << " ";}
+        //std::cout << "\n";
         // check all possible multilayer subnets
         for (const auto& combination : all_subnets_without_nodes_to_be_checked) {
-                std::cout << "Checking a combination...\n";
+                //std::cout << "Checking a combination...\n";
                 // make new subnet that is actually multilayer
                 std::array<std::unordered_set<int>,N_ASPECTS+1> S_multilayer;
                 S_multilayer[0] = subnet_nodes;
@@ -730,16 +738,18 @@ class AggregatedEnumerationSubnetworkChecker : public ValidSubnetworkHandler {
                     for (int el : S_multilayer[ii]) {subnet_elem_layers[ii].push_back(el);}
                 }
                 MLnet sub = mlnet.subnet(subnet_elem_layers);
-                std::cout << "Subnet is:\n";
-                print_subnet(S_multilayer,std::cout);
-                std::cout << "\n";
-                // TODO: why is valid_subnetwork_handler.process_subnet not doing anything???
-                if (sub.is_connected()) {std::cout << "Subnet is connected\n"; valid_subnetwork_handler.process_subnet(S_multilayer);}
+                //std::cout << "Subnet is:\n";
+                //print_subnet(S_multilayer,std::cout);
+                //std::cout << "\n";
+                //if (sub.is_connected()) {std::cout << "Subnet is connected\n"; std::cout << typeid(valid_subnetwork_handler).name(); valid_subnetwork_handler.process_subnet(S_multilayer);}
+                if (sub.is_connected()) {valid_subnetwork_handler_ptr->process_subnet(S_multilayer); total_number_of_subnetworks++;}
+                //if (sub.is_connected()) {total_number_of_subnetworks++;}
         }
      }
 };
 
-void aggregate_and_enumerate(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, ValidSubnetworkHandler& valid_subnetwork_handler) {
+void aggregate_and_enumerate(const MLnet& mlnet, const std::array<int,N_ASPECTS+1> size, ValidSubnetworkHandler* init_valid_subnetwork_handler_ptr) {
+    // use this to run aggregated enumeration
     // create aggregated graph (single-layer)
     MLnet aggregated_net = aggregate_to_single_layer(mlnet);
     // enumerate all subgraphs of the aggregated graph, while setting non-node sizes to 1
@@ -747,15 +757,19 @@ void aggregate_and_enumerate(const MLnet& mlnet, const std::array<int,N_ASPECTS+
     std::array<int,N_ASPECTS+1> aggregated_size;
     aggregated_size[0] = size[0];
     for (int ii=1; ii<N_ASPECTS+1; ii++) {aggregated_size[ii] = 1;}
-    // create agg_check which includes valid_subnetwork_handler inside it
-    AggregatedEnumerationSubnetworkChecker agg_check = AggregatedEnumerationSubnetworkChecker(mlnet,valid_subnetwork_handler,size);
+    // create agg_check which includes valid_subnetwork_handler inside it, and the original network
+    AggregatedEnumerationSubnetworkChecker agg_check = AggregatedEnumerationSubnetworkChecker(mlnet,init_valid_subnetwork_handler_ptr,size);
+    //agg_check.set_valid_subnetwork_handler(init_valid_subnetwork_handler);
     // debug printing
-    agg_check.print_all_layer_combinations();
-    std::cout << "\n";
-    agg_check.print_all_subnets_without_nodes();
-    std::cout << "Running nl-mesu...\n";
-    // TODO: WHY IS AGG_CHECK VALID_SUBNETWORK_HANLDER NOT DOING ANYTHING???????????????
+    //agg_check.print_all_layer_combinations();
+    //std::cout << "\n";
+    //agg_check.print_all_subnets_without_nodes();
+    //std::cout << "Running nl-mesu...\n";
+    //
     nl_mesu(aggregated_net,aggregated_size,agg_check);
+    //std::cout << "Manual counting:\n";
+    //std::cout << agg_check.get_total_number() << "\n";
+    //return agg_check.get_total_number();
 }
 
 // file input -------------------------------------------------------------------------------------------------------------------
@@ -1078,10 +1092,10 @@ void test_write_to_argument_file(const std::string& fname) {
 void test_aggregation(const std::string& inputfile) {
     MLnet mlnet = load_edge_file(inputfile);
     MLnet agg_mlnet = aggregate_to_single_layer(mlnet);
-    agg_mlnet.print_all_nls();
-    std::cout << "\n";
-    agg_mlnet.print_all_mledges();
-    std::cout << "\n";
+    //agg_mlnet.print_all_nls();
+    //std::cout << "\n";
+    //agg_mlnet.print_all_mledges();
+    //std::cout << "\n";
     SubnetworkNumberCounter subnet_counter;
     SubnetworkPrinter subnet_printer;
     // set sizes all to 2
@@ -1089,10 +1103,10 @@ void test_aggregation(const std::string& inputfile) {
     for (int ii = 0; ii < N_ASPECTS+1; ii++) {size[ii] = 2;}
     // set aspect 1 size to 3
     size[1] = 3;
-    aggregate_and_enumerate(mlnet, size, subnet_counter);
-    std::cout << "\nCount:\n";
-    std::cout << subnet_counter.get_total_number();
-    std::cout << "\n";
+    aggregate_and_enumerate(mlnet, size, &subnet_printer);
+    //std::cout << "\nsubnet_counter count:\n";
+    //std::cout << subnet_counter.get_total_number();
+    //std::cout << "\n";
 }
 
 // main ----------------------------------------------------------------------------------------------------------------------
