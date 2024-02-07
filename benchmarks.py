@@ -11,6 +11,7 @@ import collections
 import helpers
 import os
 from cpp_sanity_check import read_temp_file_res
+import pymnet as pn
 
 @helpers.persistent
 def compare_running_times(subnet_sizes = [(2,2,2),(2,2,3),(2,3,3),(3,3,3),(3,3,4)],er_params=([5,5,5],0.1),total_p=None):
@@ -544,9 +545,9 @@ def parse_network_savename(net_function,**kwargs):
             savename = savename + '_' + kw + '=' + str(kwargs[kw]).replace(' ', '')
     return savename
 
-def parse_output_savename(network_inputfilename, subnet_size):
+def parse_output_savename(network_inputfilename, subnet_size, save_folder='cpp_benchmark_results/'):
     base_name = network_inputfilename.split('/')[1]
-    save_folder = 'cpp_benchmark_results/'
+    #save_folder = 'cpp_benchmark_results/'
     return save_folder + base_name + '_' + str(subnet_size).replace(' ','')
 
 def make_er_nets_changing_aspects_generator():
@@ -646,6 +647,61 @@ def run_benchmark_models_cpp(net_kw_subnet_generator):
         if not os.path.exists(outputfile):
             os.system(call_str)
             #print(call_str)
+
+##### Extra benchmarks with aggregation method
+
+def run_benchmark_aggregated_cpp(net_kw_subnet_generator):
+    # results go to cpp_benchmark_results_aggregated_algo
+    for param_dict in net_kw_subnet_generator:
+        inputfile = create_network_in_cpp_format(param_dict['net_function'], **param_dict['kwargs'])
+        outputfile = parse_output_savename(inputfile, param_dict['subnet_size'], save_folder='cpp_benchmark_results_aggregated_algo/')
+        n_aspects = len(param_dict['subnet_size']) - 1
+        call_str = './mesu_' + str(n_aspects) + '.out' + ' ' + "'" + inputfile + "'" + ' ' + "'" + outputfile + "'" + ' ' + "'" + str(param_dict['subnet_size']).replace(' ','').strip('()') + "'"
+        # add output_method
+        call_str = call_str + ' time '
+        # add agg algo
+        call_str = call_str + ' aggregated'
+        if not os.path.exists(outputfile):
+            os.system(call_str)
+
+def run_benchmark_aggregated_convenience_script_2aspect_geo_fullnodes():
+    net_kw_subnet_generator_list = []
+    for nn in (1000,1500,2000,2500,3000,3500,4000,4500,5000,10000):
+    #for nn in (1000,):
+        for ll in (1,2,3,4):
+            # count 3 and 4 layers only for 1000 nodes (very incomplete data for others)
+            if ll > 2 and nn > 1000:
+                continue
+            net_kw_subnet_generator_list.append(make_geo_mlayer_generator(layers_in_second_aspect=ll,nnodes=nn))
+    for net_kw_subnet_generator in net_kw_subnet_generator_list:
+        run_benchmark_aggregated_cpp(net_kw_subnet_generator)
+
+def run_benchmark_aggregated_convenience_script_2aspect_geo_1000nodes():
+    net_kw_subnet_generator_list = []
+    #for nn in (1000,1500,2000,2500,3000,3500,4000,4500,5000,10000):
+    for nn in (1000,):
+        for ll in (1,2,3,4):
+            # count 3 and 4 layers only for 1000 nodes (very incomplete data for others)
+            if ll > 2 and nn > 1000:
+                continue
+            net_kw_subnet_generator_list.append(make_geo_mlayer_generator(layers_in_second_aspect=ll,nnodes=nn))
+    for net_kw_subnet_generator in net_kw_subnet_generator_list:
+        run_benchmark_aggregated_cpp(net_kw_subnet_generator)
+
+def make_shattered_network(nn=100):
+    # each layer contains only one connected pair, but aggregated you get the full network
+    # also manually insert one 3,2 graphlet into first layer pair
+    shattered_net = pn.MultilayerNetwork(aspects=1,fullyInterconnected=False)
+    layer = 0
+    for node_ii in range(0,nn):
+        for node_jj in range(node_ii+1,nn):
+            shattered_net[node_ii,layer][node_jj,layer] = 1
+            layer = layer + 1
+    # add one graphlet
+    shattered_net[0,0][0,1] = 1
+    savefolder = 'cpp_benchmark_networks_shattered/'
+    savename = savefolder+'shattered_'+str(nn)+'_3_2_graphlet.edges'
+    helpers.save_edgelist_cpp_format(shattered_net,savename,include_isolated_nls=False)
 
 ##### Model network benchmark plotting for cpp
 
