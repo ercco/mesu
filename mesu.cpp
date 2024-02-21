@@ -877,7 +877,7 @@ void run_time(std::string inputfile, std::string outputfile, std::array<int,N_AS
         nl_mesu(mlnet,size,subnet_number_counter);
         auto end = std::chrono::steady_clock::now();
         auto tdiff = end - start;
-        output_stream << "nl-mesu "<< std::chrono::duration<double> (tdiff).count() << " " << subnet_number_counter.get_total_number() << "\n";
+        output_stream << "nl-mesu "<< std::chrono::duration<double> (tdiff).count() << " " << subnet_number_counter.get_total_number() << std::endl;
     }
     if (algo == "a-mesu" or algo == "both") {
         SubnetworkNumberCounter subnet_number_counter;
@@ -885,7 +885,7 @@ void run_time(std::string inputfile, std::string outputfile, std::array<int,N_AS
         a_mesu(mlnet,size,subnet_number_counter);
         auto end = std::chrono::steady_clock::now();
         auto tdiff = end - start;
-        output_stream << "a-mesu "<< std::chrono::duration<double> (tdiff).count() << " " << subnet_number_counter.get_total_number() << "\n";
+        output_stream << "a-mesu "<< std::chrono::duration<double> (tdiff).count() << " " << subnet_number_counter.get_total_number() << std::endl;
     }
     if (algo == "aggregated") {
         SubnetworkNumberCounter subnet_number_counter;
@@ -893,7 +893,7 @@ void run_time(std::string inputfile, std::string outputfile, std::array<int,N_AS
         aggregate_and_enumerate(mlnet,size,&subnet_number_counter);
         auto end = std::chrono::steady_clock::now();
         auto tdiff = end - start;
-        output_stream << "aggregated "<< std::chrono::duration<double> (tdiff).count() << " " << subnet_number_counter.get_total_number() << "\n";
+        output_stream << "aggregated "<< std::chrono::duration<double> (tdiff).count() << " " << subnet_number_counter.get_total_number() << std::endl;
     }
     return;
 }
@@ -908,17 +908,17 @@ void run_count(std::string inputfile, std::string outputfile, std::array<int,N_A
     if (algo == "nl-mesu" or algo == "both") {
         SubnetworkNumberCounter subnet_number_counter;
         nl_mesu(mlnet,size,subnet_number_counter);
-        output_stream << "nl-mesu " << subnet_number_counter.get_total_number() << "\n";
+        output_stream << "nl-mesu " << subnet_number_counter.get_total_number() << std::endl;
     }
     if (algo == "a-mesu" or algo == "both") {
         SubnetworkNumberCounter subnet_number_counter;
         a_mesu(mlnet,size,subnet_number_counter);
-        output_stream << "a-mesu " << subnet_number_counter.get_total_number() << "\n";
+        output_stream << "a-mesu " << subnet_number_counter.get_total_number() << std::endl;
     }
     if (algo == "aggregated") {
         SubnetworkNumberCounter subnet_number_counter;
         aggregate_and_enumerate(mlnet,size,&subnet_number_counter);
-        output_stream << "aggregated " << subnet_number_counter.get_total_number() << "\n";
+        output_stream << "aggregated " << subnet_number_counter.get_total_number() << std::endl;
     }
     return;
 }
