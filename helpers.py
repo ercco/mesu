@@ -92,7 +92,142 @@ def geo_multilayer_any_aspects(l,edges_in_layers,edges_between_layers):
             M[tuple(iledge)] = 1
     return M
 
+def geo_er_mixed_multilayer_any_aspects(l,edges_in_layers,edges_between_layers,p_er_intra,p_er_inter):
+    # geo model with er model on top (each layer and each pair of layers)
+    #
+    # TODO: currently does not work with 1 aspect, since layers are ints instead of tuples
+    # tempfix: use 1 as number of elementary layers in second aspect
+    #
+    # l : number of elementary layers in each aspect
+    # edges_in_layers : int with approximate number of edges within layers
+    # edges_between_layers : int with approximate number of edges between each pair of layers
+    M = pn.MultilayerNetwork(aspects=len(l)-1,directed=False,fullyInterconnected=True)
+    n = l[0]
+    pos = None
+    for ii,layers_in_aspect in enumerate(l):
+        for jj in range(layers_in_aspect):
+            M.add_layer(layer=jj,aspect=ii)
+    layers = list(M.iter_layers()) # for getting all pairs later
+    for layer in layers:
+        netX,pos = get_single_geo_instance(n,edges_in_layers,pos)
+        for node in netX.nodes:
+            M.add_node(node,layer=layer)
+        for e in netX.edges:
+            # add edges between nodelayers inside layer
+            node1 = e[0]
+            node2 = e[1]
+            medge = [node1, node2, *layer]
+            M[tuple(medge)] = 1
+        # add additional er edges
+        all_nodes = list(netX.nodes)
+        for node_pair in itertools.combinations(all_nodes,2):
+            if random.random() < p_er_intra:
+                meredge = [node_pair[0], node_pair[1], *layer]
+                M[tuple(meredge)] = 1
+    for layer_pair in itertools.combinations(layers, 2):
+        netX,pos = get_single_geo_instance(n,edges_between_layers,pos)
+        for e in netX.edges:
+            # add edges between nodelayers between layers
+            iledge = []
+            node1 = e[0]
+            node2 = e[1]
+            iledge.append(node1)
+            iledge.append(node2)
+            for ii in range(len(layer_pair[0])):
+                iledge.append(layer_pair[0][ii])
+                iledge.append(layer_pair[1][ii])
+            M[tuple(iledge)] = 1
+        # add additional er edges
+        # consider all possible edge pairs, i.e.
+        # bipartite er where number of edges is n^2
+        # also including self-edges
+        all_nodes = list(netX.nodes)
+        for node1 in all_nodes:
+            for node2 in all_nodes:
+                if random.random() < p_er_inter:
+                    ileredge = []
+                    ileredge.append(node1)
+                    ileredge.append(node2)
+                    for ii in range(len(layer_pair[0])):
+                        ileredge.append(layer_pair[0][ii])
+                        ileredge.append(layer_pair[1][ii])
+                    M[tuple(ileredge)] = 1
+    return M
+
+def geo_er_mixed_multilayer_any_aspects_mean_deg_parametrization(l,d_geo_intra,d_geo_inter,d_er_intra,d_er_inter):
+    # geo model with er model on top (each layer and each pair of layers)
+    #
+    # TODO: currently does not work with 1 aspect, since layers are ints instead of tuples
+    # tempfix: use 1 as number of elementary layers in second aspect
+    #
+    # l : number of elementary layers in each aspect
+    # edges_in_layers : int with approximate number of edges within layers
+    # edges_between_layers : int with approximate number of edges between each pair of layers
+    #
+    # transform to other parametrization:
+    # geo
+    edges_in_layers = int(np.floor((d_geo_intra*l[0])/2.0))
+    edges_between_layers = int(np.floor((l[0]*d_geo_inter)/(np.product(l[1:])-1)))
+    # er
+    # testing with 0
+    p_er_intra = d_er_intra/(float(l[0]-1))
+    p_er_inter = d_er_inter/(float(np.product(l[1:])-1)*l[0])
+    #
+    M = pn.MultilayerNetwork(aspects=len(l)-1,directed=False,fullyInterconnected=True)
+    n = l[0]
+    pos = None
+    for ii,layers_in_aspect in enumerate(l):
+        for jj in range(layers_in_aspect):
+            M.add_layer(layer=jj,aspect=ii)
+    layers = list(M.iter_layers()) # for getting all pairs later
+    for layer in layers:
+        netX,pos = get_single_geo_instance(n,edges_in_layers,pos)
+        for node in netX.nodes:
+            M.add_node(node,layer=layer)
+        for e in netX.edges:
+            # add edges between nodelayers inside layer
+            node1 = e[0]
+            node2 = e[1]
+            medge = [node1, node2, *layer]
+            M[tuple(medge)] = 1
+        # add additional er edges
+        all_nodes = list(netX.nodes)
+        for node_pair in itertools.combinations(all_nodes,2):
+            if random.random() < p_er_intra:
+                meredge = [node_pair[0], node_pair[1], *layer]
+                M[tuple(meredge)] = 1
+    for layer_pair in itertools.combinations(layers, 2):
+        netX,pos = get_single_geo_instance(n,edges_between_layers,pos)
+        for e in netX.edges:
+            # add edges between nodelayers between layers
+            iledge = []
+            node1 = e[0]
+            node2 = e[1]
+            iledge.append(node1)
+            iledge.append(node2)
+            for ii in range(len(layer_pair[0])):
+                iledge.append(layer_pair[0][ii])
+                iledge.append(layer_pair[1][ii])
+            M[tuple(iledge)] = 1
+        # add additional er edges
+        # consider all possible edge pairs, i.e.
+        # bipartite er where number of edges is n^2
+        # also including self-edges
+        all_nodes = list(netX.nodes)
+        for node1 in all_nodes:
+            for node2 in all_nodes:
+                if random.random() < p_er_inter:
+                    ileredge = []
+                    ileredge.append(node1)
+                    ileredge.append(node2)
+                    for ii in range(len(layer_pair[0])):
+                        ileredge.append(layer_pair[0][ii])
+                        ileredge.append(layer_pair[1][ii])
+                    M[tuple(ileredge)] = 1
+    return M
+
 def get_single_geo_instance(n,n_edges,pos):
+    # slightly overgenerates the number of edges
     r = math.sqrt(2.2 * float(n_edges) / ((n - 1.0) * n) / math.pi)
     netX = networkx.soft_random_geometric_graph(n, r, pos=pos)
     pos = networkx.get_node_attributes(netX, 'pos')

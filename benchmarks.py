@@ -569,7 +569,7 @@ def make_geo_mplex_generator():
     # increase nlayers, average degree
     mean_degree = 3
     nnodes = 1000
-    nlayers = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    nlayers = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30]
     subnet_sizes = [(2,2),(2,3),(3,2),(3,3)]
     for nl in nlayers:
         for subnet_size in subnet_sizes:
@@ -603,6 +603,54 @@ def make_geo_mlayer_generator(layers_in_second_aspect=1,nnodes=1000):
             return_dict['subnet_size'] = subnet_size
             yield return_dict
 
+def make_geo_er_mixed_mlayer_generator(nnodes=100,p_er_intra=0.01,p_er_inter=0.01):
+    # runs second aspect 1 to 4
+    mean_degree_inside = 3
+    mean_degree_between = 2
+    nlayers_in_first_aspect = [5,10,15,20]
+    nlayers_in_second_aspect = [1,2,3,4]
+    for layers_in_second_aspect in nlayers_in_second_aspect:
+        if layers_in_second_aspect > 1:
+            subnet_sizes = [(2,2,2),(2,3,2),(3,2,2),(3,3,2)]
+        elif layers_in_second_aspect == 1:
+            subnet_sizes = [(2,2,1),(2,3,1),(3,2,1),(3,3,1)]
+        for nl_first in nlayers_in_first_aspect:
+            for subnet_size in subnet_sizes:
+                return_dict = dict()
+                kws = dict()
+                kws['l'] = (nnodes,nl_first,layers_in_second_aspect)
+                kws['edges_in_layers'] = int((nnodes*mean_degree_inside)/2)
+                kws['edges_between_layers'] = int((nnodes*mean_degree_between)/2)
+                kws['p_er_intra'] = p_er_intra
+                kws['p_er_inter'] = p_er_inter
+                return_dict['net_function'] = helpers.geo_er_mixed_multilayer_any_aspects
+                return_dict['kwargs'] = kws
+                return_dict['subnet_size'] = subnet_size
+                yield return_dict
+
+def make_geo_er_mixed_mlayer_generator_param_mean_degrees(nnodes,d_geo_intra,d_geo_inter,d_er_intra,d_er_inter):
+    nlayers_in_first_aspect = [5,10,15,20]
+    #nlayers_in_second_aspect = [1,2]
+    nlayers_in_second_aspect = [1,2,3,4]
+    for layers_in_second_aspect in nlayers_in_second_aspect:
+        if layers_in_second_aspect > 1:
+            subnet_sizes = [(2,2,2),(2,3,2),(3,2,2),(3,3,2)]
+        elif layers_in_second_aspect == 1:
+            subnet_sizes = [(2,2,1),(2,3,1),(3,2,1),(3,3,1)]
+        for nl_first in nlayers_in_first_aspect:
+            for subnet_size in subnet_sizes:
+                return_dict = dict()
+                kws = dict()
+                kws['l'] = (nnodes,nl_first,layers_in_second_aspect)
+                kws['d_geo_intra'] = d_geo_intra
+                kws['d_geo_inter'] = d_geo_inter
+                kws['d_er_intra'] = d_er_intra
+                kws['d_er_inter'] = d_er_inter
+                return_dict['net_function'] = helpers.geo_er_mixed_multilayer_any_aspects_mean_deg_parametrization
+                return_dict['kwargs'] = kws
+                return_dict['subnet_size'] = subnet_size
+                yield return_dict
+
 def make_er_mlayer_single_aspect_generator():
     mean_degree = 3
     nlayers = [3,4,5,6,7,8,9,10]
@@ -625,7 +673,7 @@ def make_er_mplex_generator():
     # use pymnet with number of edges fixed
     mean_degree = 3
     nnodes = 1000
-    nlayers = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    nlayers = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,30]
     subnet_sizes = [(2,2),(2,3),(3,2),(3,3)]
     for nl in nlayers:
         for subnet_size in subnet_sizes:
@@ -647,6 +695,10 @@ def run_benchmark_models_cpp(net_kw_subnet_generator):
         if not os.path.exists(outputfile):
             os.system(call_str)
             #print(call_str)
+
+def create_networks_without_running_algorithms(net_kw_subnet_generator):
+    for param_dict in net_kw_subnet_generator:
+        create_network_in_cpp_format(param_dict['net_function'], **param_dict['kwargs'])
 
 ##### Extra benchmarks with aggregation method
 
@@ -720,6 +772,23 @@ def plot_group_of_lines(shared_x_axis,individual_y_axes,formats,line_labels,x_ax
     ax.set_ylabel(y_axis_label)
     ax.set_title(title)
     ax.set_xticks(shared_x_axis)
+    return fig,ax
+
+def plot_group_of_lines_xlabels(shared_x_axis,x_axis_labels,individual_y_axes,formats,line_labels,x_axis_label,y_axis_label,title,plot_to_ax=None,colors=None):
+    if plot_to_ax is None:
+        fig,ax = plt.subplots()
+    else:
+        ax = plot_to_ax
+        fig = ax.get_figure()
+    for ii in range(len(individual_y_axes)):
+        if colors:
+            ax.plot(shared_x_axis,individual_y_axes[ii],formats[ii],label=line_labels[ii],color=colors[ii])
+        else:
+            ax.plot(shared_x_axis,individual_y_axes[ii],formats[ii],label=line_labels[ii])
+    ax.set_xlabel(x_axis_label)
+    ax.set_ylabel(y_axis_label)
+    ax.set_title(title)
+    ax.set_xticks(ticks=shared_x_axis,labels=x_axis_labels)
     return fig,ax
 
 def plot_mplex_relative_vs_net_size(net_kw_subnet_generator=make_geo_mplex_generator(),savename='cpp_benchmark_figures/geo_mplex.pdf',title='GEO mplex',plot_to_ax=None):
@@ -990,3 +1059,198 @@ def plot_combined_convenience_script(case):
         fig.supylabel(r'         $t_{elsse}$ / $t_{nlse}$',x=0)
         fig.savefig('cpp_benchmark_figures/geo_mlayer_4_1000n.pdf')
         plt.rcParams.update(plt.rcParamsDefault)
+
+def load_benchmark_result_from_all_algos(param_dict):
+    outputfiles = []
+    # nl-mesu and a-mesu
+    outputfiles.append(parse_output_savename(parse_network_savename(param_dict['net_function'],**param_dict['kwargs']),param_dict['subnet_size'],save_folder='cpp_benchmark_results/'))
+    # aggregated
+    outputfiles.append(parse_output_savename(parse_network_savename(param_dict['net_function'],**param_dict['kwargs']),param_dict['subnet_size'],save_folder='cpp_benchmark_results_aggregated_algo/'))
+    # defaults to None
+    #nl_mesu_time,nl_mesu_number,a_mesu_time,a_mesu_number,agg_time,agg_number = None,None,None,None,None,None
+    res_dict = {}
+    for key in ['nl-mesu_time','nl-mesu_number','a-mesu_time','a-mesu_number','aggregated_time','aggregated_number']:
+        res_dict[key] = None
+    for outputfile in outputfiles:
+        try:
+            with open(outputfile,'r') as f:
+                file_is_empty = True
+                for line in f:
+                    data = line.split()
+                    res_dict[data[0]+'_time'] = float(data[1])
+                    res_dict[data[0]+'_number'] = int(data[2])
+                    file_is_empty = False
+                if file_is_empty:
+                    raise Exception # go to except block
+        except:
+            pass
+    return res_dict
+
+
+def nested_dict():
+    return collections.defaultdict(nested_dict)
+
+def load_benchmark_result_by_subnet_size_all_algos(net_kw_subnet_generator):
+    res_dict = nested_dict()
+    for param_dict in net_kw_subnet_generator:
+        nnodes,nlayers_in_first_aspect,nlayers_in_second_aspect = param_dict['kwargs']['l']
+        res_dict[nnodes][nlayers_in_second_aspect][nlayers_in_first_aspect][param_dict['subnet_size']] = load_benchmark_result_from_all_algos(param_dict)
+    return res_dict
+
+def plot_geo_er_mixed_all_algos_separate_plot(full_dict,title,nlayers_in_first_aspect=5,nlayers_in_second_aspect=1,nnodes=100):
+    formats = {'nl-mesu' : '-', 'a-mesu' : '--', 'aggregated' : '-.'}
+    #full_dict = load_benchmark_result_by_subnet_size_all_algos(net_kw_subnet_generator)
+    time_dict = full_dict[nnodes][nlayers_in_second_aspect][nlayers_in_first_aspect]
+    x_axis_labels_tuples = sorted(time_dict.keys(),key=lambda x : x[-1])
+    x_axis_labels = [str(x) for x in x_axis_labels_tuples]
+    shared_x_axis = range(len(x_axis_labels))
+    # nl-mesu, a-mesu, aggregated
+    all_y_vals = [[],[],[]]
+    all_formats = [formats['nl-mesu'],formats['a-mesu'],formats['aggregated']]
+    all_labels = ['nlse','elsse','ad-esu']
+    all_colors = ['#000000','#000000','#000000']
+    for subnet_size in x_axis_labels_tuples:
+        all_y_vals[0].append(time_dict[subnet_size]['nl-mesu_time'])
+        all_y_vals[1].append(time_dict[subnet_size]['a-mesu_time'])
+        all_y_vals[2].append(time_dict[subnet_size]['aggregated_time'])
+    # dirty hack for avoiding pdf broken errors with all None values
+    if any(all_y_vals[0]) or any(all_y_vals[1]) or any(all_y_vals[2]):
+        fig,ax = plot_group_of_lines_xlabels(shared_x_axis, x_axis_labels, individual_y_axes=all_y_vals, formats=all_formats, line_labels=all_labels, x_axis_label='Subnetwork size', y_axis_label='t (s)', title=title, colors=all_colors)
+        ax.set_yscale('log')
+        ax.legend(loc='upper left')
+        return fig,ax
+    else:
+        return None,None
+
+def plot_all_individual_geo_er_convenience_script():
+    nn = 100
+    savefolder = 'cpp_benchmark_figures/geo_er_mixed_'+str(nn)+'nodes/'
+    nl1 = [5,10,15,20]
+    nl2 = [1,2,3,4]
+    equal_generator = make_geo_er_mixed_mlayer_generator_param_mean_degrees(100,1.5,1.5,1.5,1.5)
+    geo_1_er_2_generator = make_geo_er_mixed_mlayer_generator_param_mean_degrees(100,d_geo_intra=1,d_geo_inter=1,d_er_intra=2,d_er_inter=2)
+    geo_2_er_1_generator = make_geo_er_mixed_mlayer_generator_param_mean_degrees(100,d_geo_intra=2,d_geo_inter=2,d_er_intra=1,d_er_inter=1)
+    gens = [equal_generator,geo_1_er_2_generator,geo_2_er_1_generator]
+    full_dicts = []
+    for gen in gens:
+        full_dicts.append(load_benchmark_result_by_subnet_size_all_algos(gen))
+    gen_names = ['geo1.5_er1.5','geo1_er2','geo2_er1']
+    for full_dict,gname in zip(full_dicts,gen_names):
+        for nlayers_in_first_aspect in nl1:
+            for nlayers_in_second_aspect in nl2:
+                title = '1.asp: '+str(nlayers_in_first_aspect)+' 2.asp: '+str(nlayers_in_second_aspect)+' '+gname
+                #try:
+                fig,ax = plot_geo_er_mixed_all_algos_separate_plot(full_dict,title,nlayers_in_first_aspect,nlayers_in_second_aspect,nn)
+                if fig is not None:
+                    fig.savefig(savefolder+title+'.pdf')
+                #except:
+                #    pass
+    plt.close('all')
+
+def plot_geo_er_mixed_absolute_vs_subnet_size(net_kw_subnet_generator,nlayers_in_first_aspect_list,nlayers_in_second_aspect,plot_to_ax):
+    #color_dict = {5:'#c2e699',10:'#78c679',15:'#31a354',20:'#006837'}
+    color_dict = {5:'#D81B60',10:'#004D40',15:'#DEAB0F',20:'#1E88E5'}
+    formats = {'nl-mesu' : '-', 'a-mesu' : '--', 'aggregated' : ':'}
+    nnodes = 100
+    #nl1 = [5,10,15,20]
+    #nl1 = [10,20]
+    nl1 = nlayers_in_first_aspect_list
+    full_dict = load_benchmark_result_by_subnet_size_all_algos(net_kw_subnet_generator)
+    time_dict = full_dict[nnodes][nlayers_in_second_aspect]
+    if nlayers_in_second_aspect == 1:
+        subnet_sizes = [(2,2,1),(2,3,1),(3,2,1),(3,3,1)]
+    else:
+        subnet_sizes = [(2,2,2),(2,3,2),(3,2,2),(3,3,2)]
+    x_axis_labels = [''.join(str(x).split()) for x in subnet_sizes]
+    shared_x_axis = range(len(x_axis_labels))
+    #fig,ax = plt.subplots(1,1)
+    for nlayers_in_first_aspect in nl1:
+        nl1_y_vals = [[],[],[]]
+        for subnet_size in subnet_sizes:
+            nl1_y_vals[0].append(float(time_dict[nlayers_in_first_aspect][subnet_size]['nl-mesu_time']))
+            nl1_y_vals[1].append(float(time_dict[nlayers_in_first_aspect][subnet_size]['a-mesu_time']))
+            nl1_y_vals[2].append(float(time_dict[nlayers_in_first_aspect][subnet_size]['aggregated_time']))
+        nl1_formats = [formats['nl-mesu'],formats['a-mesu'],formats['aggregated']]
+        nl1_colors = [color_dict[nlayers_in_first_aspect],color_dict[nlayers_in_first_aspect],color_dict[nlayers_in_first_aspect]]
+        nl1_labels = ['nlse '+str(nlayers_in_first_aspect),'elsse '+str(nlayers_in_first_aspect),'ad-esu '+str(nlayers_in_first_aspect)]
+        plot_group_of_lines_xlabels(shared_x_axis, x_axis_labels, individual_y_axes=nl1_y_vals, formats=nl1_formats, line_labels=nl1_labels, x_axis_label='Subnetwork size', y_axis_label='t (s)', title=None, colors=nl1_colors, plot_to_ax=plot_to_ax)
+    plot_to_ax.set_yscale('log')
+
+def plot_geo_er_mixed_convenience_script():
+    color_dict = {5:'#D81B60',10:'#004D40',15:'#DEAB0F',20:'#1E88E5'}
+    nl1 = [5,20]
+    nl1 = [5,10,15,20]
+    #plt.rcParams.update({'legend.fontsize': 8.4,'legend.handlelength': 1,'legend.loc':'lower left','legend.columnspacing': 0.4,'legend.handletextpad': 0.2,'lines.linewidth':2})
+    #plt.rcParams.update({'legend.fontsize': 6,'legend.handlelength': 0.8,'legend.loc':'lower left','legend.columnspacing': 0.4,'legend.handletextpad': 0.2,'lines.linewidth':2})
+    plt.rcParams.update({'legend.fontsize': 8,'legend.handlelength': 3.5,'legend.loc':'lower left','legend.columnspacing': 0.7,'legend.handletextpad': 0.3,'lines.linewidth':2})
+    #fig,axs = plt.subplots(2, 2, sharex='all', sharey='all')
+    #fig,axs = plt.subplots(2, 2, sharex='col', sharey='all', figsize=(0.7*6.4,0.7*4.8))
+    fig,axs = plt.subplots(2, 2, sharex='col', sharey='all', figsize=(0.7*6.4,0.7*6))
+    # geo 2 er 1
+    # 1 l in 2nd aspect
+    net_kw_subnet_generator = make_geo_er_mixed_mlayer_generator_param_mean_degrees(100,2,2,1,1)
+    plot_geo_er_mixed_absolute_vs_subnet_size(net_kw_subnet_generator,nl1,1,plot_to_ax=axs[0][0])
+    axs[0][0].set_xlabel(None)
+    axs[0][0].set_ylabel(None)
+    axs[0][0].text(0,2000,'a)',fontsize=12)
+    #axs[0][0].legend(ncols=4)
+    axs[0][0].set_ylim([0.005,20000])
+    # geo 2 er 1
+    # 4 l in second aspect
+    net_kw_subnet_generator = make_geo_er_mixed_mlayer_generator_param_mean_degrees(100,2,2,1,1)
+    plot_geo_er_mixed_absolute_vs_subnet_size(net_kw_subnet_generator,nl1,4,plot_to_ax=axs[0][1])
+    axs[0][1].set_xlabel(None)
+    axs[0][1].set_ylabel(None)
+    axs[0][1].text(0,2000,'b)',fontsize=12)
+    #axs[0][1].legend(ncols=4)
+    # geo 1 er 2
+    # 1 l in 2nd aspect
+    net_kw_subnet_generator = make_geo_er_mixed_mlayer_generator_param_mean_degrees(100,1,1,2,2)
+    plot_geo_er_mixed_absolute_vs_subnet_size(net_kw_subnet_generator,nl1,1,plot_to_ax=axs[1][0])
+    axs[1][0].set_xlabel(None)
+    axs[1][0].set_ylabel(None)
+    axs[1][0].text(0,2000,'c)',fontsize=12)
+    #axs[1][0].legend(ncols=4)
+    # geo 1 er 2
+    # 4 l in 2nd aspect
+    net_kw_subnet_generator = make_geo_er_mixed_mlayer_generator_param_mean_degrees(100,1,1,2,2)
+    plot_geo_er_mixed_absolute_vs_subnet_size(net_kw_subnet_generator,nl1,4,plot_to_ax=axs[1][1])
+    axs[1][1].set_xlabel(None)
+    axs[1][1].set_ylabel(None)
+    axs[1][1].text(0,2000,'d)',fontsize=12)
+    #axs[1][1].legend(ncols=4)
+    #axs[0][0].tick_params(axis='x', labelrotation=45)
+    #axs[0][1].tick_params(axis='x', labelrotation=45)
+    axs[1][0].tick_params(axis='x', labelrotation=75)
+    axs[1][1].tick_params(axis='x', labelrotation=75)
+    fig.subplots_adjust(wspace=0, hspace=0)
+    #fig.subplots_adjust(top=0.99,right=0.99)
+    #fig.subplots_adjust(top=0.99,right=0.99,left=0.15,bottom=0.13)
+    fig.subplots_adjust(top=0.95,right=0.99,left=0.13,bottom=0.18)
+    fig.supxlabel('          Subnetwork size',y=0)
+    fig.supylabel(r'           $t(s)$',x=0)
+    #fig.legend(*axs[0][1].get_legend_handles_labels(),loc='lower right',bbox_to_anchor=(2, 0),fancybox=False,shadow=False,ncol=4)
+    lines2 = [Line2D([0], [1], color='k', linewidth=2, linestyle=ls) for ls in ['-','--',':']]
+    labels2 = ['nlse','elsse','ad-esu']
+    legend2 = plt.legend(lines2, labels2, loc=8, ncols=3, bbox_to_anchor=(0,2),frameon=False,fancybox=False,shadow=False)
+    if len(nl1) == 2:
+        elem_layer_text_start_point = 0.25
+        under10_addition = 0.03
+        over10_addition = 0.05
+    else:
+        elem_layer_text_start_point = 0.196
+        under10_addition = 0.032
+        over10_addition = 0.05
+    addition = 0
+    fig.text(elem_layer_text_start_point,0.955,r'Number of elementary layers in first aspect:',fontsize=8)
+    for nlayers_in_first_aspect in nl1:
+        fig.text(elem_layer_text_start_point+0.56+addition,0.955,str(nlayers_in_first_aspect),color=color_dict[nlayers_in_first_aspect],fontsize=8,weight='bold')
+        if nlayers_in_first_aspect < 10:
+            addition = addition + under10_addition
+        else:
+            addition = addition + over10_addition
+    if len(nl1) == 2:
+        fig.savefig('cpp_benchmark_figures/geo_er_mixed_combined_2_1_1_2_1asp_5_10.pdf')
+    else:
+        fig.savefig('cpp_benchmark_figures/geo_er_mixed_combined_2_1_1_2_1asp_all.pdf')
+    plt.rcParams.update(plt.rcParamsDefault)
