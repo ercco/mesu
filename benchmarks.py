@@ -1396,17 +1396,19 @@ def plot_geo_er_scatter_convenience_script():
     plot_2aspect_scatter_times_vs_number_of_subnets_all_algos(net_kw_subnet_generator_list,savename,min_number)
     plt.close('all')
 
-def find_small_subnetwork_numbers_2aspect(net_kw_subnet_generator,number):
+def find_subnetwork_numbers_in_range_2aspect(net_kw_subnet_generator,lower_bound=-1,upper_bound=2):
+    # subnetwork numbers between (lower_bound,upper_bound) noninclusive
+    # uses nl-mesu result
     res_dict = load_benchmark_result_by_subnet_size_all_algos(net_kw_subnet_generator)
     for nnodes in res_dict:
         for nlayers_in_second_aspect in res_dict[nnodes]:
             for nlayers_in_first_aspect in res_dict[nnodes][nlayers_in_second_aspect]:
                 for subnet_size in res_dict[nnodes][nlayers_in_second_aspect][nlayers_in_first_aspect]:
                     alg_res = res_dict[nnodes][nlayers_in_second_aspect][nlayers_in_first_aspect][subnet_size]
-                    if alg_res['nl-mesu_number'] < number:
+                    if alg_res['nl-mesu_number'] < upper_bound and alg_res['nl-mesu_number'] > lower_bound:
                         yield (nnodes,nlayers_in_first_aspect,nlayers_in_second_aspect,subnet_size,alg_res['nl-mesu_number'])
 
-def find_small_subnetwork_numbers_geo_er_mixed(number=2):
+def find_anomalous_subnetwork_numbers_geo_er_mixed(lower_bound=-1,upper_bound=2):
     nnodes = [100,200]
     mean_degs = [(1.5,1.5),(2,1),(1,2)]
     #net_kw_subnet_generator_list = [make_geo_er_mixed_mlayer_generator_param_mean_degrees(100,1.5,1.5,1.5,1.5),
@@ -1422,5 +1424,5 @@ def find_small_subnetwork_numbers_geo_er_mixed(number=2):
         for d in mean_degs:
             net_kw_subnet_generator = make_geo_er_mixed_mlayer_generator_param_mean_degrees(nn,d[0],d[0],d[1],d[1])
             print(nn,d)
-            for anomaly in find_small_subnetwork_numbers_2aspect(net_kw_subnet_generator,number):
+            for anomaly in find_subnetwork_numbers_in_range_2aspect(net_kw_subnet_generator,lower_bound,upper_bound):
                 print(anomaly)
