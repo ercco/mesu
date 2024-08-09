@@ -24,15 +24,19 @@ ids = ("arabidopsis",
        )
 sizes = ((2,2),(3,2),(2,3),(3,3),(4,2),(4,3))
 
-def plot_group_of_lines_xlabels(shared_x_axis,x_axis_labels,individual_y_axes,formats,line_labels,x_axis_label,y_axis_label,title,plot_to_ax=None,colors=None):
+def plot_group_of_lines_xlabels(shared_x_axis,x_axis_labels,individual_y_axes,formats,line_labels,x_axis_label,y_axis_label,title,plot_to_ax=None,colors=None,linewidths=None):
     if plot_to_ax is None:
         fig,ax = plt.subplots()
     else:
         ax = plot_to_ax
         fig = ax.get_figure()
     for ii in range(len(individual_y_axes)):
-        if colors:
+        if colors and linewidths:
+            ax.plot(shared_x_axis,individual_y_axes[ii],formats[ii],label=line_labels[ii],color=colors[ii],linewidth=linewidths[ii],alpha=1)
+        elif colors:
             ax.plot(shared_x_axis,individual_y_axes[ii],formats[ii],label=line_labels[ii],color=colors[ii],alpha=1)
+        elif linewidths:
+            ax.plot(shared_x_axis,individual_y_axes[ii],formats[ii],label=line_labels[ii],linewidth=linewidths[ii],alpha=1)
         else:
             ax.plot(shared_x_axis,individual_y_axes[ii],formats[ii],label=line_labels[ii])
     ax.set_xlabel(x_axis_label)
@@ -541,10 +545,12 @@ def convert_results_to_lists(all_res,sizes=[(2,2),(2,3),(3,2),(3,3),(4,2),(4,3)]
 
 def format_results_to_plotting(all_res_list_format,data_colors):
     formats_dict = {'nl-mesu' : '-', 'a-mesu' : '--', 'aggregated' : ':'}
+    line_widths_dict = {'nl-mesu' : 2, 'a-mesu' : 2.5, 'aggregated' : 3}
     individual_y_axes = []
     formats = []
     line_labels = []
     colors = []
+    linewidths = []
     for dataset in all_res_list_format:
         for net_type in all_res_list_format[dataset]:
             for algo in ['nl-mesu','a-mesu','aggregated']:
@@ -552,7 +558,8 @@ def format_results_to_plotting(all_res_list_format,data_colors):
                 formats.append(formats_dict[algo])
                 line_labels.append(dataset+'_'+net_type+'_'+algo)
                 colors.append(data_colors[dataset][net_type])
-    return individual_y_axes,formats,line_labels,colors
+                linewidths.append(line_widths_dict[algo])
+    return individual_y_axes,formats,line_labels,colors,linewidths
 
 def plot_all_results(included='all',plot_to_ax=None):
     plt.rcParams.update({'font.size':12, 'legend.fontsize': 12,'legend.handlelength': 3.5,'legend.loc':'upper center','legend.columnspacing': 0.7,'legend.handletextpad': 0.3,'lines.linewidth':3})
@@ -580,16 +587,23 @@ def plot_all_results(included='all',plot_to_ax=None):
     if included == 'fb_twitter':
         all_res = filter_all_results(all_res,included)
     all_res_list_format = convert_results_to_lists(all_res,sizes)
-    individual_y_axes,formats,line_labels,colors = format_results_to_plotting(all_res_list_format, individual_colors)
+    individual_y_axes,formats,line_labels,colors,linewidths = format_results_to_plotting(all_res_list_format, individual_colors)
     shared_x_axis = list(range(len(sizes)))
     x_axis_labels = [''.join(str(x).split()) for x in sizes]
     if not plot_to_ax:
         fig,ax = plt.subplots(1,1)
     else:
         ax = plot_to_ax
-    plot_group_of_lines_xlabels(shared_x_axis, x_axis_labels, individual_y_axes, formats, line_labels, x_axis_label='Subnetwork size', y_axis_label='$t(s)$', title='', plot_to_ax=ax, colors=colors)
-    ax.set_yscale('log')
+    if plot_to_ax:
+        plot_group_of_lines_xlabels(shared_x_axis, x_axis_labels, individual_y_axes, formats, line_labels, x_axis_label=None, y_axis_label=None, title='', plot_to_ax=ax, colors=colors, linewidths=linewidths)
+        ax.set_yscale('log')
+        if included == 'fb_twitter':
+            ax.scatter([0],all_res['fb']['hours'][(2,2)]['aggregated_time'],marker=',',facecolors=individual_colors['fb']['hours'],edgecolors='none',s=10)
+            ax.text(-0.18,1.5*10**5,'FB hourly AD-ESU')
+            plt.annotate('',xy=(0.06,all_res['fb']['hours'][(2,2)]['aggregated_time']+3000),xytext=(0.6,1.2*10**5),arrowprops=dict(arrowstyle='simple,tail_width=0.03,head_width=0.4',facecolor='black'))
     if not plot_to_ax:
+        plot_group_of_lines_xlabels(shared_x_axis, x_axis_labels, individual_y_axes, formats, line_labels, x_axis_label='Subnetwork size', y_axis_label='$t$ (s)', title='', plot_to_ax=ax, colors=colors)
+        ax.set_yscale('log')
         fig.subplots_adjust(top=0.934,right=0.99,left=0.115,bottom=0.095)
         if included == 'all':
             fig.text(0.13,0.95,'Dataset:',fontsize=10)
@@ -611,17 +625,53 @@ def plot_all_results(included='all',plot_to_ax=None):
         legend2 = plt.legend(lines2, labels2, loc=8, ncols=3, bbox_to_anchor=(0.5,1),frameon=False,fancybox=False,shadow=False)
         # add individual point for aggregated FB hours
         ax.scatter([0],all_res['fb']['hours'][(2,2)]['aggregated_time'],marker=',',facecolors=individual_colors['fb']['hours'],edgecolors='none',s=10)
-        fig.text(0.13,0.79,'FB hourly ad-esu')
+        fig.text(0.13,0.79,'FB hourly AD-ESU')
         plt.annotate('',xy=(0.06,all_res['fb']['hours'][(2,2)]['aggregated_time']+3000),xytext=(0.5,80000),arrowprops=dict(arrowstyle='simple,tail_width=0.03,head_width=0.4',facecolor='black'))
         plt.savefig('cpp_figures/absolute_running_times_extradata_'+included+'.pdf')
         plt.close('all')
     plt.rcParams.update(plt.rcParamsDefault)
 
 def plot_all_results_split():
-    fig,ax = plt.subplots(1,2)
+    plt.rcParams.update({'font.size':12, 'legend.fontsize': 12,'legend.handlelength': 3.5,'legend.loc':'upper center','legend.columnspacing': 0.7,'legend.handletextpad': 0.3,'lines.linewidth':3})
+    individual_colors = {'ppi' : {'celegans':'#FFC033','arabidopsis':'#E69F00'},
+                         'fb' : {'hours':'#000000','weeks':'#757575'},
+                         'airline' : {'20':'#33FFC7','all':'#00996F'},
+                         'twitter' : {'single_hashtags_max_jaccard_linkage':'#94386B','topics_max_NMI_linkage':'#D590B6'}}
+    # multiply width with 1.1 for width 0.9 -> 0.99
+    fig,ax = plt.subplots(1,2,sharey='all',figsize=(1.1*1.8*0.79*6.4,0.79*4.8))
     plot_all_results('ppi_air',ax[0])
     plot_all_results('fb_twitter',ax[1])
-    plt.show()
+    fig.subplots_adjust(wspace=0, hspace=0)
+    #fig.subplots_adjust(top=0.935,right=0.995,left=0.06,bottom=0.1)
+    fig.subplots_adjust(top=0.917,right=0.995,left=0.065,bottom=0.11)
+    fig.supxlabel('          Subnetwork size',y=0)
+    fig.supylabel(r'           $t$ (s)',x=0)
+    # legends
+    plt.rcParams.update({'font.size':12, 'legend.fontsize': 12,'legend.handlelength': 3.5,'legend.loc':'upper center','legend.columnspacing': 0.7,'legend.handletextpad': 0.3,'lines.linewidth':3})
+    legend_linewidths_by_style = {'-' : 2, '--' : 2.5, ':' : 3}
+    lines2 = [Line2D([0], [1], color='k', linewidth=legend_linewidths_by_style[ls], linestyle=ls) for ls in ['-','--',':']]
+    # turn on latex and setup for \textsc
+    #plt.rc('text', usetex=True)
+    #plt.rc('text.latex', preamble=r'\usepackage{amsmath} \usepackage[T1]{fontenc} \usepackage{mathptmx}')
+    #plt.rc('text.latex', preamble=r'\usepackage{amsmath}')
+    #labels2 = [r'$\textbf{NLSE}$',r'$\textbf{\textsc{elsse}}$',r'$\textsc{ad-esu}$']
+    labels2 =  ['NLSE','ELSSE','AD-ESU'] # just use all caps and times new roman font
+    legend2 = plt.legend(lines2, labels2, loc=8, ncols=3, bbox_to_anchor=(0,0.999),frameon=False,fancybox=False,shadow=False, prop={'family':'Times New Roman'})
+    # turn off latex for the rest of the text
+    #plt.rc('text', usetex=False)
+    y_addition = -0.018
+    fig.text(0.12,y_addition+0.944,'C. elegans',color=individual_colors['ppi']['celegans'],fontsize=10,weight='bold',style='italic')
+    fig.text(0.22,y_addition+0.944,'A. thaliana',color=individual_colors['ppi']['arabidopsis'],fontsize=10,weight='bold',style='italic')
+    fig.text(0.57,y_addition+0.944,'FB hourly',color=individual_colors['fb']['hours'],fontsize=10,weight='bold')
+    fig.text(0.66,y_addition+0.944,'FB weekly',color=individual_colors['fb']['weeks'],fontsize=10,weight='bold')
+    fig.text(0.326,y_addition+0.944,'Air all',color=individual_colors['airline']['all'],fontsize=10,weight='bold')
+    fig.text(0.39,y_addition+0.944,'Air 20',color=individual_colors['airline']['20'],fontsize=10,weight='bold')
+    fig.text(0.755,y_addition+0.944,'Twitter #',color=individual_colors['twitter']['single_hashtags_max_jaccard_linkage'],fontsize=10,weight='bold')
+    fig.text(0.84,y_addition+0.944,'Twitter topics',color=individual_colors['twitter']['topics_max_NMI_linkage'],fontsize=10,weight='bold')
+    fig.savefig('cpp_figures/absolute_running_times_extradata_final_publication_split_v2.pdf')
+    plt.close('all')
+    plt.rcParams.update(plt.rcParamsDefault)
+
 
 def format_results_to_scatter(all_res):
     count = 0
@@ -664,7 +714,35 @@ def plot_all_results_scatter():
     else:
         return fig,ax
 
-
+def find_min_max_subnet_amounts():
+    maxi = 0
+    mini = 1000000000000000000
+    all_res = filter_all_results(get_all_results())
+    print(all_res.keys())
+    for i in all_res:
+        for j in all_res[i]:
+            for k in all_res[i][j]:
+                n1 = all_res[i][j][k]['nl-mesu_number']
+                n2 = all_res[i][j][k]['a-mesu_number']
+                n3 = all_res[i][j][k]['aggregated_number']
+                if n1:
+                    n = n1
+                elif n2:
+                    n = n2
+                elif n3:
+                    n = n3
+                if n and n > maxi:
+                    maxi = n
+                    maxa = (i,j,k)
+                if n and n < mini:
+                    mini = n
+                    mina = (i,j,k)
+    print('Max:')
+    print(maxi)
+    print(maxa)
+    print('Min:')
+    print(mini)
+    print(mina)
 
 
 
